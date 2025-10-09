@@ -1,0 +1,582 @@
+{{- range $containerIndex, $containerUnused := $.Values.containers }}
+{{- if eq $containerIndex 0 }}
+apiVersion: apps/v1
+{{- $kind := "Deployment" }}
+{{- range $containerIndex, $container := $.Values.containers }}
+  {{- range $volumeMountIndex, $volumeMount := $container.volumeMounts }}
+    {{- if $volumeMount.volume.readOnly }}
+    {{- else }}
+      {{- range $volumeIndex, $volume := $.Values.volumes }}
+        {{- if not (or (hasKey $volume "secret") (hasKey $volume "configMap") (hasKey $volume "emptyDir") (hasKey $volume "hostPath") ) }}
+        {{- if eq $volumeMount.volume.name $volume.name }}
+          {{- $kind = "StatefulSet" }}
+        {{- end }}
+        {{- end }}
+      {{- end }}
+    {{- end }}
+  {{- end }}
+{{- end }}
+{{- $allContainers := list }}
+{{- range $idx, $container := $.Values.containers }}
+  {{- $allContainers = append $allContainers $container }}
+{{- end }}
+{{- range $idx, $initContainer := $.Values.initContainers }}
+  {{- $allContainers = append $allContainers $initContainer }}
+{{- end }}
+kind: {{ $kind }}
+metadata:
+  name: {{ $.Release.Name | quote }}
+  labels:
+    "app.kubernetes.io/name": "devspace-app"
+    "app.kubernetes.io/component": {{ $.Release.Name | quote }}
+    "app.kubernetes.io/managed-by": {{ $.Release.Service | quote }}
+    {{- range $labelName, $labelValue := $.Values.labels }}
+    {{ $labelName | quote }}: {{ $labelValue | quote }}
+    {{- end }}
+  annotations:
+    "helm.sh/chart": "{{ $.Chart.Name }}-{{ $.Chart.Version }}"
+    {{- range $annotationName, $annotationValue := $.Values.annotations }}
+    {{ $annotationName | quote }}: {{ $annotationValue | quote }}
+    {{- end }}
+spec:
+  replicas: {{ $.Values.replicas | default 1 }}
+  revisionHistoryLimit: {{ $.Values.revisionHistoryLimit | default 3 }}
+  {{- if eq $kind "Deployment" }}
+  strategy:
+    {{- if $.Values.rollingUpdate }}
+    {{- if $.Values.rollingUpdate.enabled }}
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: {{ $.Values.rollingUpdate.maxSurge | default "25%" }}
+      maxUnavailable: {{ $.Values.rollingUpdate.maxUnavailable | default "0%" }}
+    {{- else }}
+    type: Recreate
+    {{- end }}
+    {{- else }}
+    type: Recreate
+    {{- end }}
+  {{- end }}
+  {{- if eq $kind "StatefulSet" }}
+  {{- if $.Values.rollingUpdate }}
+  {{- if $.Values.rollingUpdate.enabled }}
+  updateStrategy:
+    type: RollingUpdate
+    rollingUpdate:
+      partition: {{ $.Values.rollingUpdate.partition | default 0 }}
+  {{- end }}
+  {{- end }}
+  podManagementPolicy: {{ $.Values.podManagementPolicy | default "OrderedReady" | quote }}
+  {{- if $.Values.serviceName }}
+  serviceName: {{ $.Values.serviceName | quote }}
+  {{- else }}
+  serviceName: "{{ $.Release.Name }}-headless"
+  {{- end }}
+  {{- end }}
+  selector:
+    matchLabels:
+      "app.kubernetes.io/name": "devspace-app"
+      "app.kubernetes.io/component": {{ $.Release.Name | quote }}
+      "app.kubernetes.io/managed-by": {{ $.Release.Service | quote }}
+      {{- range $labelName, $labelValue := $.Values.labels }}
+      {{ $labelName | quote }}: {{ $labelValue | quote }}
+      {{- end }}
+  template:
+    metadata:
+      labels:
+        "app.kubernetes.io/name": "devspace-app"
+        "app.kubernetes.io/component": {{ $.Release.Name | quote }}
+        "app.kubernetes.io/managed-by": {{ $.Release.Service | quote }}
+        {{- range $labelName, $labelValue := $.Values.labels }}
+        {{ $labelName | quote }}: {{ $labelValue | quote }}
+        {{- end }}
+      annotations:
+        "helm.sh/chart": "{{ $.Chart.Name }}-{{ $.Chart.Version }}"
+        {{- range $annotationName, $annotationValue := $.Values.annotations }}
+        {{ $annotationName | quote }}: {{ $annotationValue | quote }}
+        {{- end }}
+    spec:
+      imagePullSecrets:
+        {{- range $secretIndex, $secretName := $.Values.pullSecrets }}
+        - name: {{ $secretName | quote }}
+        {{- end }}
+      nodeSelector:
+{{ toYaml $.Values.nodeSelector | indent 8 }}
+      nodeName:
+{{ toYaml $.Values.nodeName | indent 8 }}
+      affinity:
+{{ toYaml $.Values.affinity | indent 8 }}
+      tolerations:
+{{ toYaml $.Values.tolerations | indent 8 }}
+      dnsConfig:
+{{ toYaml $.Values.dnsConfig | indent 8 }}
+      hostAliases:
+{{ toYaml $.Values.hostAliases | indent 8 }}
+      overhead:
+{{ toYaml $.Values.overhead | indent 8 }}
+      readinessGates:
+{{ toYaml $.Values.readinessGates | indent 8 }}
+      securityContext:
+{{ toYaml $.Values.securityContext | indent 8 }}
+      topologySpreadConstraints:
+{{ toYaml $.Values.topologySpreadConstraints | indent 8 }}
+      {{- if hasKey $.Values "activeDeadlineSeconds" }}
+      activeDeadlineSeconds: {{ $.Values.activeDeadlineSeconds }}
+      {{- end }}
+      {{- if hasKey $.Values "automountServiceAccountToken" }}
+      automountServiceAccountToken: {{ $.Values.automountServiceAccountToken }}
+      {{- end }}
+      {{- if $.Values.dnsPolicy }}
+      dnsPolicy: {{ $.Values.dnsPolicy }}
+      {{- end }}
+      {{- if hasKey $.Values "enableServiceLinks" }}
+      enableServiceLinks: {{ $.Values.enableServiceLinks }}
+      {{- end }}
+      {{- if $.Values.hostIPC }}
+      hostIPC: {{ $.Values.hostIPC }}
+      {{- end }}
+      {{- if $.Values.hostNetwork }}
+      hostNetwork: {{ $.Values.hostNetwork }}
+      {{- end }}
+      {{- if $.Values.hostPID }}
+      hostPID: {{ $.Values.hostPID }}
+      {{- end }}
+      {{- if $.Values.hostname }}
+      hostname: {{ $.Values.hostname }}
+      {{- end }}
+      {{- if $.Values.preemptionPolicy }}
+      preemptionPolicy: {{ $.Values.preemptionPolicy }}
+      {{- end }}
+      {{- if $.Values.priority }}
+      priority: {{ $.Values.priority }}
+      {{- end }}
+      {{- if $.Values.priorityClassName }}
+      priorityClassName: {{ $.Values.priorityClassName }}
+      {{- end }}
+      {{- if $.Values.restartPolicy }}
+      restartPolicy: {{ $.Values.restartPolicy }}
+      {{- end }}
+      {{- if $.Values.runtimeClassName }}
+      runtimeClassName: {{ $.Values.runtimeClassName }}
+      {{- end }}
+      {{- if $.Values.schedulerName }}
+      schedulerName: {{ $.Values.schedulerName }}
+      {{- end }}
+      {{- if $.Values.serviceAccount }}
+      serviceAccount: {{ $.Values.serviceAccount }}
+      {{- end }}
+      {{- if $.Values.serviceAccountName }}
+      serviceAccountName: {{ $.Values.serviceAccountName }}
+      {{- end }}
+      {{- if $.Values.setHostnameAsFQDN }}
+      setHostnameAsFQDN: {{ $.Values.setHostnameAsFQDN }}
+      {{- end }}
+      {{- if $.Values.shareProcessNamespace }}
+      shareProcessNamespace: {{ $.Values.shareProcessNamespace }}
+      {{- end }}
+      {{- if $.Values.subdomain }}
+      subdomain: {{ $.Values.subdomain }}
+      {{- end }}
+      {{- if hasKey $.Values "terminationGracePeriodSeconds" }}
+      terminationGracePeriodSeconds: {{ $.Values.terminationGracePeriodSeconds }}
+      {{- else }}
+      terminationGracePeriodSeconds: 5
+      {{- end }}
+      ephemeralContainers:
+{{ toYaml $.Values.ephemeralContainers | indent 8 }}
+      containers:
+        {{- range $containerIndex, $container := $.Values.containers }}
+        - image: "{{ $container.image }}:{{ $container.imageTag | default "latest" }}"
+          {{- if $container.name }}
+          name: {{ $container.name | quote }}
+          {{- else }}
+          name: "container-{{ $containerIndex }}"
+          {{- end }}
+          {{- if $container.imagePullPolicy }}
+          imagePullPolicy: {{ $container.imagePullPolicy }}
+          {{- end }}
+          {{- if $container.workingDir }}
+          workingDir: {{ $container.workingDir }}
+          {{- end }}
+          {{- if hasKey $container "stdin" }}
+          stdin: {{ $container.stdin }}
+          {{- end }}
+          {{- if hasKey $container "stdinOnce" }}
+          stdinOnce: {{ $container.stdinOnce }}
+          {{- end }}
+          {{- if hasKey $container "tty" }}
+          tty: {{ $container.tty }}
+          {{- end }}
+          command:
+            {{- range $commandIndex, $command := $container.command }}
+            - {{ $command | quote }}
+            {{- end }}
+          args:
+            {{- range $argIndex, $arg := $container.args }}
+            - {{ $arg | quote }}
+            {{- end }}
+          {{- if $container.terminationMessagePath }}
+          terminationMessagePath: {{ $container.terminationMessagePath }}
+          {{- end }}
+          {{- if $container.terminationMessagePolicy }}
+          terminationMessagePolicy: {{ $container.terminationMessagePolicy }}
+          {{- end }}
+          env:
+{{ toYaml $container.env | indent 12 }}
+          envFrom:
+{{ toYaml $container.envFrom | indent 12 }}
+          {{- if $container.ports }}
+          ports:
+          {{- range $portMapIndex, $portMap := $container.ports }}
+            {{- if $portMap.name }}
+            - name: {{ $portMap.name }}
+            {{- else }}
+            - name: "port-{{ $portMapIndex }}"
+            {{- end }}
+            {{- $_ := unset $portMap "name" }}
+{{ toYaml $portMap | indent 14 }}
+          {{- end }}
+          {{- end }}
+          securityContext:
+{{ toYaml $container.securityContext | indent 12 }}
+          lifecycle:
+{{ toYaml $container.lifecycle | indent 12 }}
+          livenessProbe:
+{{ toYaml $container.livenessProbe | indent 12 }}
+          readinessProbe:
+{{ toYaml $container.readinessProbe | indent 12 }}
+          startupProbe:
+{{ toYaml $container.startupProbe | indent 12 }}
+          volumeDevices:
+{{ toYaml $container.volumeDevices | indent 12 }}
+          volumeMounts:
+            {{- range $volumeMountIndex, $volumeMount := $container.volumeMounts }}
+            - mountPath: {{ $volumeMount.containerPath | quote }}
+              name: {{ $volumeMount.volume.name | quote }}
+              {{- if $volumeMount.volume.subPath }}
+              subPath: {{ trimAll "/" $volumeMount.volume.subPath | default "" | quote }}
+              {{- end }}
+              readOnly: {{ $volumeMount.volume.readOnly | default false }}
+            {{- end }}
+          {{- if $container.resources }}
+          resources:
+            {{- with $container.resources.limits }}
+            limits:
+              {{- if .cpu }}
+              cpu: {{ .cpu | quote }}
+              {{- end }}
+              {{- if .gpu }}
+              nvidia.com/gpu: {{ .gpu | quote }}
+              {{- end }}
+              {{- if .memory }}
+              memory: {{ .memory | quote }}
+              {{- end }}
+              {{- if .ephemeralStorage }}
+              ephemeral-storage: {{ .ephemeralStorage | quote }}
+              {{- end }}
+            {{- end }}
+            {{- if $container.resources.requests }}
+            {{- with $container.resources.requests }}
+            requests:
+              {{- if .cpu }}
+              cpu: {{ .cpu | quote }}
+              {{- else }}
+              {{- if $container.resources.limits }}
+              {{- if $container.resources.limits.cpu }}
+              cpu: "0"
+              {{- end }}
+              {{- end }}
+              {{- end }}
+              {{- if .memory }}
+              memory: {{ .memory | quote }}
+              {{- else }}
+              {{- if $container.resources.limits }}
+              {{- if $container.resources.limits.memory }}
+              memory: "0"
+              {{- end }}
+              {{- end }}
+              {{- end }}
+              {{- if .ephemeralStorage }}
+              ephemeral-storage: {{ .ephemeralStorage | quote }}
+              {{- else }}
+              {{- if $container.resources.limits }}
+              {{- if $container.resources.limits.ephemeralStorage }}
+              ephemeral-storage: "0"
+              {{- end }}
+              {{- end }}
+              {{- end }}
+            {{- end }}
+            {{- else }}
+            {{- if $container.resources.limits }}
+            requests:
+              {{- if $container.resources.limits.cpu }}
+              cpu: "0"
+              {{- end }}
+              {{- if $container.resources.limits.memory }}
+              memory: "0"
+              {{- end }}
+              {{- if $container.resources.limits.ephemeralStorage }}
+              ephemeral-storage: "0"
+              {{- end }}
+            {{- end }}
+            {{- end }}
+          {{- end }}
+        {{- end }}
+      initContainers:
+        {{- range $containerIndex, $container := $.Values.initContainers }}
+        - image: {{ $container.image | quote }}
+          {{- if $container.name }}
+          name: {{ $container.name | quote }}
+          {{- else }}
+          name: "init-container-{{ $containerIndex }}"
+          {{- end }}
+          {{- if $container.imagePullPolicy }}
+          imagePullPolicy: {{ $container.imagePullPolicy }}
+          {{- end }}
+          {{- if $container.workingDir }}
+          workingDir: {{ $container.workingDir }}
+          {{- end }}
+          {{- if hasKey $container "stdin" }}
+          stdin: {{ $container.stdin }}
+          {{- end }}
+          {{- if hasKey $container "stdinOnce" }}
+          stdinOnce: {{ $container.stdinOnce }}
+          {{- end }}
+          {{- if hasKey $container "tty" }}
+          tty: {{ $container.tty }}
+          {{- end }}
+          command:
+            {{- range $commandIndex, $command := $container.command }}
+            - {{ $command | quote }}
+            {{- end }}
+          args:
+            {{- range $argIndex, $arg := $container.args }}
+            - {{ $arg | quote }}
+            {{- end }}
+          {{- if $container.terminationMessagePath }}
+          terminationMessagePath: {{ $container.terminationMessagePath }}
+          {{- end }}
+          {{- if $container.terminationMessagePolicy }}
+          terminationMessagePolicy: {{ $container.terminationMessagePolicy }}
+          {{- end }}
+          env:
+{{ toYaml $container.env | indent 12 }}
+          envFrom:
+{{ toYaml $container.envFrom | indent 12 }}
+          securityContext:
+{{ toYaml $container.securityContext | indent 12 }}
+          lifecycle:
+{{ toYaml $container.lifecycle | indent 12 }}
+          livenessProbe:
+{{ toYaml $container.livenessProbe | indent 12 }}
+          readinessProbe:
+{{ toYaml $container.readinessProbe | indent 12 }}
+          startupProbe:
+{{ toYaml $container.startupProbe | indent 12 }}
+          volumeDevices:
+{{ toYaml $container.volumeDevices | indent 12 }}
+          volumeMounts:
+            {{- range $volumeMountIndex, $volumeMount := $container.volumeMounts }}
+            - mountPath: {{ $volumeMount.containerPath | quote }}
+              name: {{ $volumeMount.volume.name | quote }}
+              {{- if $volumeMount.volume.subPath }}
+              subPath: {{ trimAll "/" $volumeMount.volume.subPath | default "" | quote }}
+              {{- end }}
+              readOnly: {{ $volumeMount.volume.readOnly | default false }}
+            {{- end }}
+          {{- if $container.resources }}
+          resources:
+            {{- with $container.resources.limits }}
+            limits:
+              {{- if .cpu }}
+              cpu: {{ .cpu | quote }}
+              {{- end }}
+              {{- if .memory }}
+              memory: {{ .memory | quote }}
+              {{- end }}
+              {{- if .ephemeralStorage }}
+              ephemeral-storage: {{ .ephemeralStorage | quote }}
+              {{- end }}
+            {{- end }}
+            {{- if $container.resources.requests }}
+            {{- with $container.resources.requests }}
+            requests:
+              {{- if .cpu }}
+              cpu: {{ .cpu | quote }}
+              {{- else }}
+              {{- if $container.resources.limits }}
+              {{- if $container.resources.limits.cpu }}
+              cpu: "0"
+              {{- end }}
+              {{- end }}
+              {{- end }}
+              {{- if .memory }}
+              memory: {{ .memory | quote }}
+              {{- else }}
+              {{- if $container.resources.limits }}
+              {{- if $container.resources.limits.memory }}
+              memory: "0"
+              {{- end }}
+              {{- end }}
+              {{- end }}
+              {{- if .ephemeralStorage }}
+              ephemeral-storage: {{ .ephemeralStorage | quote }}
+              {{- else }}
+              {{- if $container.resources.limits }}
+              {{- if $container.resources.limits.ephemeralStorage }}
+              ephemeral-storage: "0"
+              {{- end }}
+              {{- end }}
+              {{- end }}
+            {{- end }}
+            {{- else }}
+            {{- if $container.resources.limits }}
+            requests:
+              {{- if $container.resources.limits.cpu }}
+              cpu: "0"
+              {{- end }}
+              {{- if $container.resources.limits.memory }}
+              memory: "0"
+              {{- end }}
+              {{- if $container.resources.limits.ephemeralStorage }}
+              ephemeral-storage: "0"
+              {{- end }}
+            {{- end }}
+            {{- end }}
+          {{- end }}
+        {{- end }}
+      volumes:
+        {{- range $volumeIndex, $volume := $.Values.volumes }}
+        {{- $isVolumeOfThisComponent := false }}
+        {{- range $containerIndex, $container := $allContainers }}
+          {{- range $volumeMountIndex, $volumeMount := $container.volumeMounts }}
+            {{- if or $volumeMount.volume.readOnly $volumeMount.volume.shared $volume.secret $volume.configMap (hasKey $volume "emptyDir") (hasKey $volume "hostPath") }}
+              {{- if eq $volume.name $volumeMount.volume.name }}
+                {{- $isVolumeOfThisComponent = true }}
+              {{- end }}
+            {{- end }}
+          {{- end }}
+        {{- end }}
+        {{- if $isVolumeOfThisComponent }}
+        - name: {{ $volume.name | quote }}
+          {{- if $volume.secret }}
+          secret:
+{{ toYaml $volume.secret | indent 12 }}
+          {{- else }}
+          {{- if $volume.configMap }}
+          configMap:
+{{ toYaml $volume.configMap | indent 12 }}
+          {{- else }}
+          {{- if hasKey $volume "emptyDir" }}
+          emptyDir:
+{{ toYaml $volume.emptyDir | indent 12 }}
+          {{- else }}
+          {{- if hasKey $volume "hostPath" }}
+          hostPath:
+{{ toYaml $volume.hostPath | indent 12 }}
+          {{- else }}
+          persistentVolumeClaim:
+            claimName: {{ $volume.name | quote }}
+          {{- end }}
+          {{- end }}
+          {{- end }}
+          {{- end }}
+        {{- end }}
+        {{- end }}
+  {{- if eq $kind "StatefulSet" }}
+  volumeClaimTemplates:
+    {{- range $volumeIndex, $volume := $.Values.volumes }}
+    {{- if or $volume.secret $volume.configMap (hasKey $volume "emptyDir") (hasKey $volume "hostPath") }}
+    {{- else }}
+    {{- $isVolumeTemplateOfThisComponent := false }}
+    {{- range $containerIndex, $container := $allContainers }}
+      {{- range $volumeMountIndex, $volumeMount := $container.volumeMounts }}
+        {{- if or $volumeMount.volume.readOnly $volumeMount.volume.shared }}
+        {{- else }}
+          {{- if eq $volume.name $volumeMount.volume.name }}
+            {{- $isVolumeTemplateOfThisComponent = true }}
+          {{- end }}
+        {{- end }}
+      {{- end }}
+    {{- end }}
+    {{- if $isVolumeTemplateOfThisComponent }}
+  - metadata:
+      name: {{ $volume.name | quote }}
+      labels:
+        "app.kubernetes.io/name": "devspace-app"
+        "app.kubernetes.io/component": {{ $.Release.Name | quote }}
+        "app.kubernetes.io/managed-by": {{ $.Release.Service | quote }}
+        {{- range $labelName, $labelValue := $volume.labels }}
+        {{ $labelName | quote }}: {{ $labelValue | quote }}
+        {{- end }}
+      annotations:
+        "helm.sh/chart": "{{ $.Chart.Name }}-{{ $.Chart.Version }}"
+        {{- range $annotationName, $annotationValue := $volume.annotations }}
+        {{ $annotationName | quote }}: {{ $annotationValue | quote }}
+        {{- end }}
+    spec:
+      {{- if $volume.storageClassName }}
+      storageClassName: {{ $volume.storageClassName }}
+      {{- end }}
+      {{- if $volume.volumeMode }}
+      volumeMode: {{ $volume.volumeMode }}
+      {{- end }}
+      {{- if $volume.volumeName }}
+      volumeName: {{ $volume.volumeName }}
+      {{- end }}
+      {{- if $volume.dataSource }}
+      dataSource:
+{{ toYaml $volume.dataSource | indent 8 }}
+      {{- end }}
+      accessModes:
+      {{- if $volume.accessModes }}
+{{ toYaml $volume.accessModes | indent 8 }}
+      {{- else }}
+      - ReadWriteOnce
+      {{- end }}
+      resources:
+        requests:
+          storage: {{ $volume.size | quote }}
+    {{- end }}
+    {{- end }}
+    {{- end }}
+  {{- end }}
+---
+
+# Create headless service for StatefulSet
+{{- if eq $kind "StatefulSet" }}
+apiVersion: v1
+kind: Service
+metadata:
+  {{- if $.Values.serviceName }}
+  name: {{ $.Values.serviceName | quote }}
+  {{- else }}
+  name: "{{ $.Release.Name }}-headless"
+  {{- end }}
+  labels:
+    "app.kubernetes.io/name": {{ $.Release.Name | quote }}
+    "app.kubernetes.io/managed-by": {{ $.Release.Service | quote }}
+    {{- range $labelName, $labelValue := $.Values.labels }}
+    {{ $labelName | quote }}: {{ $labelValue | quote }}
+    {{- end }}
+  annotations:
+    "helm.sh/chart": "{{ $.Chart.Name }}-{{ $.Chart.Version }}"
+    {{- range $annotationName, $annotationValue := $.Values.annotations }}
+    {{ $annotationName | quote }}: {{ $annotationValue | quote }}
+    {{- end }}
+spec:
+  ports:
+  # At least one port is required to have Kubernetes define an endpoint which is required for DNS to work
+  - port: 80
+    name: web
+  clusterIP: None
+  selector:
+    "app.kubernetes.io/name": "devspace-app"
+    "app.kubernetes.io/component": {{ $.Release.Name | quote }}
+    "app.kubernetes.io/managed-by": {{ $.Release.Service | quote }}
+    {{- range $labelName, $labelValue := $.Values.labels }}
+    {{ $labelName | quote }}: {{ $labelValue | quote }}
+    {{- end }}
+---
+{{- end }}
+{{- end }}
+{{- end }}

@@ -1,0 +1,108 @@
+loki:
+  enabled: true
+  deploymentMode: SingleBinary
+  image:
+    tag: "3.5.5"
+  loki:
+    auth_enabled: false
+    commonConfig:
+      replication_factor: 1
+    storage:
+      type: 'filesystem'
+    schemaConfig:
+      configs:
+        - from: 2024-04-01
+          store: tsdb
+          object_store: filesystem
+          schema: v13
+          index:
+            prefix: loki_index_
+            period: 24h
+    limits_config:
+      retention_period: 168h
+      max_query_series: 1000
+      max_query_lookback: 168h
+  
+  singleBinary:
+    replicas: 1
+    persistence:
+      enabled: false
+      # size: 1Gi
+
+  backend:
+    replicas: 0
+  read:
+    replicas: 0
+  write:
+    replicas: 0
+  gateway:
+    enabled: true
+
+fluent-bit:
+  enabled: false
+
+promtail:
+  enabled: true
+  resources:
+    limits:
+      cpu: 200m
+      memory: 128Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+  # Increase file descriptor limits
+  daemonset:
+    enabled: true
+  containerSecurityContext:
+    readOnlyRootFilesystem: true
+    capabilities:
+      drop:
+        - ALL
+    allowPrivilegeEscalation: false
+  config:
+    clients:
+      - url: http://{{ .Release.Name }}-loki:3100/loki/api/v1/push
+    positions:
+      filename: /tmp/positions.yaml
+    scrape_configs:
+      - job_name: kubernetes-pods
+        kubernetes_sd_configs:
+          - role: pod
+        relabel_configs:
+          # Only scrape pods with specific labels to reduce file watches
+          - source_labels: [__meta_kubernetes_pod_label_app]
+            action: keep
+            regex: .+
+          - source_labels: [__meta_kubernetes_pod_container_name]
+            target_label: container
+          - source_labels: [__meta_kubernetes_pod_name]
+            target_label: pod
+          - source_labels: [__meta_kubernetes_namespace]
+            target_label: namespace
+          - source_labels: [__meta_kubernetes_pod_node_name]
+            target_label: node
+        pipeline_stages:
+          - docker: {}
+    limits_config:
+      # Limit the number of files Promtail can watch
+      readline_rate: 100
+      readline_burst: 1000
+      # Max number of active streams
+      max_streams: 5000
+
+kube-prometheus-stack:
+  enabled: true
+  grafana:
+    enabled: true
+    # Disable init-chown-data to avoid permission issues with local-path storage
+    initChownData:
+      enabled: false
+    additionalDataSources:
+      - name: Loki
+        type: loki
+        uid: loki
+        url: http://{{ .Release.Name }}-loki:3100
+        access: proxy
+        isDefault: false
+        jsonData:
+          maxLines: 1000

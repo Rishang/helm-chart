@@ -1,0 +1,57 @@
+{{- range $volumeIndex, $volume := .Values.volumes }}
+{{- if or $volume.secret $volume.configMap (hasKey $volume "emptyDir") (hasKey $volume "hostPath") }}
+{{- else }}
+{{- $createVolume := false }}
+{{- range $containerIndex, $container := $.Values.containers }}
+  {{- range $volumeMountIndex, $volumeMount := $container.volumeMounts }}
+    {{- if or $volumeMount.volume.readOnly $volumeMount.volume.shared }}
+      {{- if eq $volume.name $volumeMount.volume.name }}
+        {{- $createVolume = true }}
+      {{- end }}
+    {{- end }}
+  {{- end }}
+{{- end }}
+{{- if $createVolume }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ $volume.name | quote }}
+  labels:
+    "app.kubernetes.io/name": "devspace-app"
+    "app.kubernetes.io/component": {{ $.Release.Name | quote }}
+    "app.kubernetes.io/managed-by": {{ $.Release.Service | quote }}
+    {{- range $labelName, $labelValue := $volume.labels }}
+    {{ $labelName | quote }}: {{ $labelValue | quote }}
+    {{- end }}
+  annotations:
+    "helm.sh/chart": "{{ $.Chart.Name }}-{{ $.Chart.Version }}"
+    {{- range $annotationName, $annotationValue := $volume.annotations }}
+    {{ $annotationName | quote }}: {{ $annotationValue | quote }}
+    {{- end }}
+spec:
+  {{- if $volume.storageClassName }}
+  storageClassName: {{ $volume.storageClassName }}
+  {{- end }}
+  {{- if $volume.volumeMode }}
+  volumeMode: {{ $volume.volumeMode }}
+  {{- end }}
+  {{- if $volume.volumeName }}
+  volumeName: {{ $volume.volumeName }}
+  {{- end }}
+  {{- if $volume.dataSource }}
+  dataSource:
+{{ toYaml $volume.dataSource | indent 4 }}
+  {{- end }}
+  accessModes:
+  {{- if $volume.accessModes }}
+{{ toYaml $volume.accessModes | indent 4 }}
+  {{- else }}
+  - ReadWriteOnce
+  {{- end }}
+  resources:
+    requests:
+      storage: {{ $volume.size | quote }}
+---
+{{- end }}
+{{- end }}
+{{- end }}

@@ -1,0 +1,86 @@
+{{- range $portMapIndex, $portMapUnused := $.Values.service.ports }}
+{{- if eq $portMapIndex 0 }}
+apiVersion: v1
+kind: Service
+metadata:
+  {{- if $.Values.service.name }}
+  name: {{ $.Values.service.name | quote }}
+  {{- else }}
+  name: {{ $.Release.Name | quote }}
+  {{- end }}
+  labels:
+    "app.kubernetes.io/name": {{ $.Release.Name | quote }}
+    "app.kubernetes.io/managed-by": {{ $.Release.Service | quote }}
+    {{- range $labelName, $labelValue := $.Values.service.labels }}
+    {{ $labelName | quote }}: {{ $labelValue | quote }}
+    {{- end }}
+  annotations:
+    "helm.sh/chart": "{{ $.Chart.Name }}-{{ $.Chart.Version }}"
+    {{- range $annotationName, $annotationValue := $.Values.service.annotations }}
+    {{ $annotationName | quote }}: {{ $annotationValue | quote }}
+    {{- end }}
+spec:
+  {{- if $.Values.service.clusterIP }}
+  clusterIP: {{ $.Values.service.clusterIP }}
+  {{- end }}
+  externalIPs:
+    {{- range $externalIPIndex, $externalIP := $.Values.service.externalIPs }}
+    - {{ $externalIP }}
+    {{- end }}
+  {{- if $.Values.service.externalName }}
+  externalName: {{ $.Values.service.externalName }}
+  {{- end }}
+  {{- if $.Values.service.externalTrafficPolicy }}
+  externalTrafficPolicy: {{ $.Values.service.externalTrafficPolicy }}
+  {{- end }}
+  {{- if $.Values.service.healthCheckNodePort }}
+  healthCheckNodePort: {{ $.Values.service.healthCheckNodePort }}
+  {{- end }}
+  {{- if $.Values.service.ipFamily }}
+  ipFamily: {{ $.Values.service.ipFamily }}
+  {{- end }}
+  {{- if $.Values.service.loadBalancerIP }}
+  loadBalancerIP: {{ $.Values.service.loadBalancerIP }}
+  {{- end }}
+  {{- if $.Values.service.loadBalancerSourceRanges }}
+  loadBalancerSourceRanges:
+{{ toYaml $.Values.service.loadBalancerSourceRanges | indent 4 }}
+  {{- end }}
+  {{- if $.Values.service.publishNotReadyAddresses }}
+  publishNotReadyAddresses: {{ $.Values.service.publishNotReadyAddresses }}
+  {{- end }}
+  {{- if $.Values.service.sessionAffinity }}
+  sessionAffinity: {{ $.Values.service.sessionAffinity }}
+  {{- end }}
+  {{- if $.Values.service.sessionAffinityConfig }}
+  sessionAffinityConfig:
+{{ toYaml $.Values.service.sessionAffinityConfig | indent 4 }}
+  {{- end }}
+  {{- if $.Values.service.topologyKeys }}
+  topologyKeys:
+{{ toYaml $.Values.service.topologyKeys | indent 4 }}
+  {{- end }}
+  ports:
+    {{- range $portMapIndex, $portMap := $.Values.service.ports }}
+    {{- if $portMap.name }}
+    - name: {{ $portMap.name }}
+    {{- else }}
+    - name: "port-{{ $portMapIndex }}"
+    {{- end }}
+      {{- if $portMap.nodePort }}
+      nodePort: {{ $portMap.nodePort }}
+      {{- end }}
+      port: {{ $portMap.port }}
+      {{- if $portMap.containerPort }}
+      targetPort: {{ $portMap.containerPort }}
+      {{- else }}
+      targetPort: {{ $portMap.port }}
+      {{- end }}
+      protocol: {{ $portMap.protocol | default "TCP" | quote }}
+    {{- end }}
+  selector:
+    "app.kubernetes.io/name": "devspace-app"
+    "app.kubernetes.io/component": {{ $.Release.Name | quote }}
+  type: {{ $.Values.service.type | default "ClusterIP" | quote }}
+{{- end }}
+{{- end }}
