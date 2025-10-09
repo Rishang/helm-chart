@@ -36,7 +36,7 @@ volumes: []
 # More infos on: https://devspace.cloud/docs/cli/image-building/workflow-basics#8-create-image-pull-secret
 pullSecrets: []
 
-serviceAccount: {}
+serviceaccount: {}
 
 configmap: {}
 secrets: {}

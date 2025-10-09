@@ -161,7 +161,9 @@ spec:
       {{- if $.Values.schedulerName }}
       schedulerName: {{ $.Values.schedulerName }}
       {{- end }}
-      {{- if $.Values.serviceAccountName }}
+      {{- if $.Values.serviceaccount.name }}
+      serviceAccountName: {{ $.Values.serviceaccount.name }}
+      {{- else if $.Values.serviceAccountName }}
       serviceAccountName: {{ $.Values.serviceAccountName }}
       {{- end }}
       {{- if $.Values.setHostnameAsFQDN }}
