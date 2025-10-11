@@ -1,0 +1,52 @@
+labels:
+  azure.workload.identity/use: 'true'
+containers:
+  - name: demo
+    image: nginx
+    imageTag: latest
+    imagePullPolicy: Always
+    envFrom:
+      - secretRef:
+          name: demo # same as release name
+      - configMapRef:
+          name: demo # same as release name
+    env:
+      - name: NAME
+        value: demo
+    resources:
+      limits:
+        cpu: 10m
+        memory: 64Mi
+      requests:
+        cpu: 1m
+        memory: 10Mi
+    readinessProbe:
+      httpGet:
+        path: /
+        port: 80
+      periodSeconds: 30
+      initialDelaySeconds: 30
+      timeoutSeconds: 5
+      failureThreshold: 3
+    livenessProbe:
+      httpGet:
+        path: /
+        port: 80
+      periodSeconds: 30
+      initialDelaySeconds: 30
+      timeoutSeconds: 5
+      failureThreshold: 3
+service:
+  ports:
+    - port: 80
+secrets:
+  annotations:
+    avp.kubernetes.io/path: app
+    argocd.argoproj.io/sync-options: Replace=true
+  stringData:
+    SECRET: <demo-secret>
+configmap:
+  data:
+    KEY: value
+serviceaccount:
+  name: storage-reader
