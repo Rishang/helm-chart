@@ -39,7 +39,9 @@ metadata:
     {{ $annotationName | quote }}: {{ $annotationValue | quote }}
     {{- end }}
 spec:
+  {{- if not $.Values.autoScaling }}
   replicas: {{ $.Values.replicas | default 1 }}
+  {{- end }}
   revisionHistoryLimit: {{ $.Values.revisionHistoryLimit | default 3 }}
   {{- if eq $kind "Deployment" }}
   strategy:
