@@ -1,0 +1,19 @@
+# templates/extra-objects.yaml
+
+# --- Example usage:
+# extraObjects:
+#   - apiVersion: v1
+#     kind: ConfigMap
+#     metadata:
+#       name: my-config
+#     data:
+#       key: value
+# ---
+{{- if .Values.extraObjects }}
+{{- range $i, $extra := .Values.extraObjects }}
+{{- if $i }}
+---
+{{- end }}
+{{- toYaml $extra | nindent 0 }}
+{{- end }}
+{{- end }}
