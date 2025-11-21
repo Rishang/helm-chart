@@ -22,13 +22,17 @@ metadata:
     "app.kubernetes.io/name": "devspace-app"
     "app.kubernetes.io/component": {{ $.Release.Name | quote }}
     "app.kubernetes.io/managed-by": {{ $.Release.Service | quote }}
+    {{- if $.Values.labels }}
     {{- range $labelName, $labelValue := $.Values.labels }}
     {{ $labelName | quote }}: {{ $labelValue | quote }}
     {{- end }}
+    {{- end }}
   annotations:
     "helm.sh/chart": "{{ $.Chart.Name }}-{{ $.Chart.Version }}"
+    {{- if $.Values.annotations }}
     {{- range $annotationName, $annotationValue := $.Values.annotations }}
     {{ $annotationName | quote }}: {{ $annotationValue | quote }}
+    {{- end }}
     {{- end }}
 spec:
   scaleTargetRef:
@@ -69,6 +73,10 @@ spec:
       target:
         type: Utilization
         averageUtilization: {{ $.Values.autoScaling.horizontal.averageRelativeMemory | int }}
+  {{- end }}
+  {{- if $.Values.autoScaling.horizontal.behavior }}
+  behavior:
+{{ toYaml $.Values.autoScaling.horizontal.behavior | indent 4 }}
   {{- end }}
 
 ---
