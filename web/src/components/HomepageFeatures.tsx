@@ -21,7 +21,7 @@ const charts: ChartCard[] = [
       {label: 'Introduction', href: '/component-chart/introduction'},
       {label: 'Usage', href: '/component-chart/usage'},
       {label: 'Examples', href: '/component-chart/examples'},
-      {label: 'values.yaml reference', href: '/component-chart/configuration/reference'},
+      {label: 'values.yaml reference', href: '/component-chart/reference'},
     ],
   },
   {

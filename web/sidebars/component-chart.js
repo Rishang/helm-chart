@@ -3,6 +3,7 @@ module.exports = {
   componentChartSidebar: [
     'introduction',
     'usage',
+    'reference',
     'examples',
     {
       type: 'category',

@@ -1,0 +1,74 @@
+---
+title: Values Reference
+sidebar_label: values.yaml
+---
+
+import valuesYaml from '!!raw-loader!../../values.yaml';
+import CodeBlock from '@theme/CodeBlock';
+
+## Complete values.yaml Reference
+
+Below is the complete `values.yaml` file with all available configuration options and their default values:
+
+<CodeBlock language="yaml" title="values.yaml">
+  {valuesYaml}
+</CodeBlock>
+
+## Configuration Sections
+
+The `values.yaml` is organized into the following main sections:
+
+### Core Configuration
+- **containers** - Define application containers with images, env vars, and resources
+- **initContainers** - Initialize containers that run before main containers
+- **replicas** - Number of pod replicas (default: 1)
+- **rollingUpdate** - Rolling update strategy configuration
+
+### Networking
+- **service** - Kubernetes Service configuration for internal networking
+- **ingress** - Ingress configuration for external traffic with TLS support
+
+### Storage
+- **volumes** - Persistent volume claims and volume definitions
+
+### Security & Access
+- **pullSecrets** - Image registry authentication secrets
+- **serviceaccount** - Kubernetes ServiceAccount configuration
+- **secrets** - Kubernetes Secret creation (ArgoCD Vault Plugin compatible)
+- **configmap** - ConfigMap for non-sensitive configuration
+- **externalSecrets** - External Secrets Operator integration
+
+### Metadata
+- **labels** - Additional Kubernetes labels for all resources
+- **annotations** - Additional Kubernetes annotations for all resources
+
+### Advanced
+- **autoScaling** - Horizontal Pod Autoscaler configuration
+- **extraObjects** - Raw Kubernetes objects (CRDs, KEDA, etc.)
+
+## Example Usage
+
+```yaml
+# Simple web application
+containers:
+  - image: nginx
+    imageTag: "1.21"
+    ports:
+      - port: 80
+
+service:
+  ports:
+    - port: 80
+
+ingress:
+  rules:
+    - host: myapp.example.com
+  tls: true
+```
+
+## See Also
+
+- [Container Configuration](./configuration/containers.mdx)
+- [Service Configuration](./configuration/service.mdx)
+- [Ingress Configuration](./configuration/ingress.mdx)
+- [Volumes Configuration](./configuration/volumes.mdx)
