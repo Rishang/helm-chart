@@ -14,18 +14,19 @@ name: container-[index]
 ```
 
 ## `image`
-The `image` option is mandatory and expects a string with the image repository (optionally including an image tag).
+The `image` option is mandatory and expects a string with the image repository.
 
 #### Example: Set `image` for containers
 ```yaml
 containers:
 - image: dscr.io/username/my-backend-image
-- image: nginx:1.15
+  imageTag: "1.15"
+- image: busybox # if imageTag is not set, it defaults to "latest"
 ```
 The example above would create a pod with two containers:
 
-1. The first container would be create from the image `dscr.io/username/my-backend-image`
-2. The second container would be created from the `nginx` image on [Docker Hub](https://hub.docker.com) which is tagged as version `1.15`
+1. The first container would be create from the image `dscr.io/username/my-backend-image:1.15`
+2. The second container would be created from the `busybox` image on [Docker Hub](https://hub.docker.com) which is tagged as version `latest` (default value)
 
 ## `imageTag`
 The `imageTag` option is optional and expects a string with the image tag.

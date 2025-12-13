@@ -9,7 +9,8 @@ This page contains a few copy/paste-ready examples for common `component-chart` 
 
 ```yaml
 containers:
-  - image: ghcr.io/acme/api:1.2.3
+  - image: ghcr.io/acme/api
+    imageTag: "1.2.3"
     ports:
       - port: 8080
 service:
@@ -47,7 +48,8 @@ When at least one volume is mounted into a container, the chart switches to a St
 serviceName: my-app
 
 containers:
-  - image: postgres:16
+  - image: postgres
+    imageTag: "16"
     volumeMounts:
       - containerPath: /var/lib/postgresql/data
         volume:
@@ -79,7 +81,8 @@ externalSecrets:
           key: /prod/app/database_url
 
 containers:
-  - image: ghcr.io/acme/api:1.2.3
+  - image: ghcr.io/acme/api
+    imageTag: "1.2.3"
     volumeMounts:
       - containerPath: /etc/secrets
         volume:
@@ -110,7 +113,8 @@ configmap:
     LOG_LEVEL: info
 
 containers:
-  - image: ghcr.io/acme/api:1.2.3
+  - image: ghcr.io/acme/api
+    imageTag: latest # default value
     env:
       - name: LOG_LEVEL
         valueFrom:
