@@ -1,7 +1,8 @@
 To automatically create an ingress for a component, you can configure the `ingress` section for the component:
 ```yaml {6-11}
 containers:
-- image: dscr.io/${DEVSPACE_USERNAME}/appfrontend
+- name: frontend
+  image: dscr.io/${DEVSPACE_USERNAME}/appfrontend
 service:
   ports:
   - port: 3000

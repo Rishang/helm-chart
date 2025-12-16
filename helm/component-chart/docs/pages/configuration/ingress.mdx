@@ -28,7 +28,8 @@ If the `service` of this component defines multiple `ports`, the component chart
 #### Example: Defining Hosts
 ```yaml
 containers:
-- image: dscr.io/${DEVSPACE_USERNAME}/appfrontend
+- name: frontend
+  image: dscr.io/${DEVSPACE_USERNAME}/appfrontend
 service:
   ports:
   - port: 3000
@@ -50,7 +51,8 @@ path: /
 #### Example: Defining Ingress Paths
 ```yaml
 containers:
-- image: dscr.io/${DEVSPACE_USERNAME}/appfrontend
+- name: frontend
+  image: dscr.io/${DEVSPACE_USERNAME}/appfrontend
 service:
   ports:
   - port: 3000
@@ -71,7 +73,8 @@ There are three supported path types:
 #### Example: Defining Ingress Path type
 ```yaml
 containers:
-- image: dscr.io/${DEVSPACE_USERNAME}/appfrontend
+- name: frontend
+  image: dscr.io/${DEVSPACE_USERNAME}/appfrontend
 service:
   ports:
   - port: 3000
@@ -92,7 +95,8 @@ By default, the ingress will automatically route to the first port specified und
 #### Example: Custom Service Port
 ```yaml
 containers:
-- image: dscr.io/${DEVSPACE_USERNAME}/appfrontend
+- name: frontend
+  image: dscr.io/${DEVSPACE_USERNAME}/appfrontend
 service:
   ports:
   - port: 3000
@@ -118,7 +122,8 @@ If `serviceName` is defined, `servicePort` must also be defined.
 #### Example: Custom Service Name
 ```yaml
 containers:
-- image: dscr.io/${DEVSPACE_USERNAME}/appfrontend
+- name: frontend
+  image: dscr.io/${DEVSPACE_USERNAME}/appfrontend
 ingress:
   rules:
   - host: my-static-host.tld
@@ -142,7 +147,8 @@ tls: false
 #### Example: Enabling TLS for Ingress
 ```yaml
 containers:
-- image: dscr.io/${DEVSPACE_USERNAME}/appfrontend
+- name: frontend
+  image: dscr.io/${DEVSPACE_USERNAME}/appfrontend
 service:
   ports:
   - port: 3000
@@ -164,7 +170,8 @@ tlsClusterIssuer: cert-manager-letsencrypt
 #### Example: Custom Cluster Issuer
 ```yaml
 containers:
-- image: dscr.io/${DEVSPACE_USERNAME}/appfrontend
+- name: frontend
+  image: dscr.io/${DEVSPACE_USERNAME}/appfrontend
 service:
   ports:
   - port: 3000
@@ -187,12 +194,13 @@ ingressClass: nginx
 #### Example: Custom Ingress Class
 ```yaml
 containers:
-- image: dscr.io/${DEVSPACE_USERNAME}/appfrontend
+- name: frontend
+  image: dscr.io/${DEVSPACE_USERNAME}/appfrontend
 service:
   ports:
   - port: 3000
 ingress:
-  ingressClass: traefik
+  ingressClassName: traefik
   tls: true
   rules:
   - host: my-static-host.tld
@@ -206,7 +214,8 @@ The `name` option is optional and expects a string that will be used as a name f
 #### Example: Custom Name for Ingress
 ```yaml
 containers:
-- image: dscr.io/${DEVSPACE_USERNAME}/appfrontend
+- name: frontend
+  image: dscr.io/${DEVSPACE_USERNAME}/appfrontend
 service:
   ports:
   - port: 3000
@@ -242,7 +251,8 @@ labels: []
 #### Example: Additional Labels
 ```yaml
 containers:
-- image: dscr.io/${DEVSPACE_USERNAME}/appfrontend
+- name: frontend
+  image: dscr.io/${DEVSPACE_USERNAME}/appfrontend
 service:
   ports:
   - port: 3000
@@ -277,7 +287,8 @@ annotations: []
 #### Example: Additional Annotations
 ```yaml
 containers:
-- image: dscr.io/${DEVSPACE_USERNAME}/appfrontend
+- name: frontend
+  image: dscr.io/${DEVSPACE_USERNAME}/appfrontend
 service:
   ports:
   - port: 3000

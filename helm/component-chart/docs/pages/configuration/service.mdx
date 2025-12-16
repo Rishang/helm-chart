@@ -12,7 +12,8 @@ In short, there are three things you need to know:
 To allow other containers to access this component within the cluster-internal network (2.), you can configure the `service` section for the component:
 ```yaml
 containers:
-- image: dscr.io/${DEVSPACE_USERNAME}/database
+- name: database
+  image: dscr.io/${DEVSPACE_USERNAME}/database
 service:
   ports:
   - port: 3000

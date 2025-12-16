@@ -143,7 +143,8 @@ volumes:
 After defining a volume for a component, you can mount it in the containers of the same component within the `volumeMounts` section:
 ```yaml
 containers:
-- image: "dscr.io/username/mysql"
+- name: mysql
+  image: "dscr.io/username/mysql"
   volumeMounts:
   - containerPath: /var/lib/mysql
     volume:
