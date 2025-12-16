@@ -1,15 +1,18 @@
-name: Package Helm Chart
+name: Package Helm Charts
 
 on:
   release:
     types:
       - published
-    paths:
-      - 'helm/**'  # only trigger if chart changes
 
 jobs:
-  build:
+  package-charts:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        chart:
+          - component-chart
+          - loki-stack
 
     steps:
       # 1. Checkout the repo
@@ -22,20 +25,54 @@ jobs:
         with:
           version: v3.12.0
 
-      # 3. Package the Helm chart
+      # 3. Extract version from release tag
+      - name: Extract version
+        id: version
+        run: |
+          # Remove 'v' prefix if present (e.g., v1.2.3 -> 1.2.3)
+          VERSION=${GITHUB_REF_NAME#v}
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Extracted version: $VERSION"
+
+      # 4. Update chart version
+      - name: Update chart version
+        run: |
+          CHART_PATH="helm/${{ matrix.chart }}/Chart.yaml"
+          VERSION="${{ steps.version.outputs.version }}"
+          
+          # Update version in Chart.yaml
+          sed -i "s/^version:.*/version: $VERSION/" "$CHART_PATH"
+          
+          echo "Updated $CHART_PATH with version $VERSION"
+          cat "$CHART_PATH"
+
+      # 5. Update chart dependencies (if any)
+      - name: Update chart dependencies
+        run: |
+          CHART_PATH="helm/${{ matrix.chart }}"
+          if [ -f "$CHART_PATH/Chart.yaml" ] && grep -q "dependencies:" "$CHART_PATH/Chart.yaml"; then
+            echo "Updating dependencies for ${{ matrix.chart }}"
+            helm dependency update "$CHART_PATH"
+          else
+            echo "No dependencies to update for ${{ matrix.chart }}"
+          fi
+
+      # 6. Package the Helm chart
       - name: Package Helm chart
         run: |
-          helm package helm/component-chart --destination ./helm-packages
+          helm package helm/${{ matrix.chart }} --destination ./helm-packages
+          echo "Packaged chart:"
+          ls -lh ./helm-packages/
 
-      # 4. Upload as artifact (optional)
+      # 7. Upload as artifact
       - name: Upload Helm tarball
         uses: actions/upload-artifact@v4
         with:
-          name: helm-component-chart
+          name: helm-${{ matrix.chart }}
           path: ./helm-packages/*.tgz
 
-      # 5. Optionally: push to a release or GitHub Pages
-      - name: Create GitHub Release
+      # 8. Attach to GitHub Release
+      - name: Attach to GitHub Release
         uses: softprops/action-gh-release@v1
         with:
           files: ./helm-packages/*.tgz
