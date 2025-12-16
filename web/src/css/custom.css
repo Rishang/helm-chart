@@ -102,3 +102,50 @@
   background: var(--ifm-code-background);
   overflow-x: auto;
 }
+
+/* Enhanced YAML syntax highlighting for dark theme */
+[data-theme='dark'] .prism-code {
+  background-color: #282a36 !important;
+}
+
+/* YAML keys (properties) */
+[data-theme='dark'] .token.atrule,
+[data-theme='dark'] .token.key {
+  color: #8be9fd !important; /* Cyan for keys */
+}
+
+/* YAML values (strings) */
+[data-theme='dark'] .token.string {
+  color: #f1fa8c !important; /* Yellow for strings */
+}
+
+/* YAML punctuation (colons, dashes) */
+[data-theme='dark'] .token.punctuation {
+  color: #f8f8f2 !important; /* White for punctuation */
+}
+
+/* YAML numbers */
+[data-theme='dark'] .token.number {
+  color: #bd93f9 !important; /* Purple for numbers */
+}
+
+/* YAML booleans */
+[data-theme='dark'] .token.boolean {
+  color: #ff79c6 !important; /* Pink for booleans */
+}
+
+/* YAML comments */
+[data-theme='dark'] .token.comment {
+  color: #6272a4 !important; /* Gray for comments */
+}
+
+/* YAML tags and anchors */
+[data-theme='dark'] .token.tag {
+  color: #ff79c6 !important; /* Pink for tags */
+}
+
+/* YAML important/operators */
+[data-theme='dark'] .token.important,
+[data-theme='dark'] .token.operator {
+  color: #50fa7b !important; /* Green for operators */
+}

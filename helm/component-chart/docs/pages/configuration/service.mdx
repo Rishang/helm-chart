@@ -12,15 +12,15 @@ In short, there are three things you need to know:
 To allow other containers to access this component within the cluster-internal network (2.), you can configure the `service` section for the component:
 ```yaml
 containers:
-- name: database
-  image: dscr.io/${DEVSPACE_USERNAME}/database
+- name: podinfo
+  image: stefanprodan/podinfo
 service:
   ports:
-  - port: 3000
+  - port: 9898
 ```
 Now, the component is accessible via:
 ```bash
-[HELM_RELEASE_NAME]:3000    # e.g. database:3000
+[HELM_RELEASE_NAME]:9898  # podinfo:9898
 ```
 
 
