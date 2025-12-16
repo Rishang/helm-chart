@@ -13,6 +13,20 @@ helm repo add common-chart https://rishang.github.io/common-chart/charts
 helm repo update
 ```
 
+### Create a `values.yaml`
+
+```yaml
+# values.yaml
+containers:
+  - name: demo
+    image: nginx
+    imageTag: "latest"
+
+service:
+  ports:
+    - port: 80
+```
+
 Install or upgrade the chart:
 ```bash
 helm upgrade --install my-component common-chart/component-chart --values values.yaml

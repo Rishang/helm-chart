@@ -2,7 +2,7 @@ To automatically create an ingress for a component, you can configure the `ingre
 ```yaml {6-11}
 containers:
 - name: frontend
-  image: dscr.io/${DEVSPACE_USERNAME}/appfrontend
+  image: mendhak/http-https-echo
 service:
   ports:
   - port: 3000

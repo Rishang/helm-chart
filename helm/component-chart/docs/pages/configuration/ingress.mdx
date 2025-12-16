@@ -29,7 +29,7 @@ If the `service` of this component defines multiple `ports`, the component chart
 ```yaml
 containers:
 - name: frontend
-  image: dscr.io/${DEVSPACE_USERNAME}/appfrontend
+  image: mendhak/http-https-echo
 service:
   ports:
   - port: 3000
@@ -52,7 +52,7 @@ path: /
 ```yaml
 containers:
 - name: frontend
-  image: dscr.io/${DEVSPACE_USERNAME}/appfrontend
+  image: mendhak/http-https-echo
 service:
   ports:
   - port: 3000
@@ -74,7 +74,7 @@ There are three supported path types:
 ```yaml
 containers:
 - name: frontend
-  image: dscr.io/${DEVSPACE_USERNAME}/appfrontend
+  image: mendhak/http-https-echo
 service:
   ports:
   - port: 3000
@@ -96,7 +96,7 @@ By default, the ingress will automatically route to the first port specified und
 ```yaml
 containers:
 - name: frontend
-  image: dscr.io/${DEVSPACE_USERNAME}/appfrontend
+  image: mendhak/http-https-echo
 service:
   ports:
   - port: 3000
@@ -123,7 +123,7 @@ If `serviceName` is defined, `servicePort` must also be defined.
 ```yaml
 containers:
 - name: frontend
-  image: dscr.io/${DEVSPACE_USERNAME}/appfrontend
+  image: mendhak/http-https-echo
 ingress:
   rules:
   - host: my-static-host.tld
@@ -148,7 +148,7 @@ tls: false
 ```yaml
 containers:
 - name: frontend
-  image: dscr.io/${DEVSPACE_USERNAME}/appfrontend
+  image: mendhak/http-https-echo
 service:
   ports:
   - port: 3000
@@ -171,7 +171,7 @@ tlsClusterIssuer: cert-manager-letsencrypt
 ```yaml
 containers:
 - name: frontend
-  image: dscr.io/${DEVSPACE_USERNAME}/appfrontend
+  image: mendhak/http-https-echo
 service:
   ports:
   - port: 3000
@@ -195,7 +195,7 @@ ingressClass: nginx
 ```yaml
 containers:
 - name: frontend
-  image: dscr.io/${DEVSPACE_USERNAME}/appfrontend
+  image: mendhak/http-https-echo
 service:
   ports:
   - port: 3000
@@ -215,7 +215,7 @@ The `name` option is optional and expects a string that will be used as a name f
 ```yaml
 containers:
 - name: frontend
-  image: dscr.io/${DEVSPACE_USERNAME}/appfrontend
+  image: mendhak/http-https-echo
 service:
   ports:
   - port: 3000
@@ -252,7 +252,7 @@ labels: []
 ```yaml
 containers:
 - name: frontend
-  image: dscr.io/${DEVSPACE_USERNAME}/appfrontend
+  image: mendhak/http-https-echo
 service:
   ports:
   - port: 3000
@@ -288,7 +288,7 @@ annotations: []
 ```yaml
 containers:
 - name: frontend
-  image: dscr.io/${DEVSPACE_USERNAME}/appfrontend
+  image: mendhak/http-https-echo
 service:
   ports:
   - port: 3000

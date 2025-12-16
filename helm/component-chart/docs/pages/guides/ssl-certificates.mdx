@@ -5,10 +5,10 @@ sidebar_label: TLS / SSL Cerficates
 
 To enable TLS, you need an SSL certificate. When setting this option, the component chart will add an annotation to your ingress which tells cert-manager to privision an SSL certificate for all the hosts in this ingress.
 
-```yaml {7}
+```yaml
 containers:
 - name: frontend
-  image: dscr.io/${DEVSPACE_USERNAME}/appfrontend
+  image: mendhak/http-https-echo
 service:
   ports:
   - port: 3000

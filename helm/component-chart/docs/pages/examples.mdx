@@ -23,8 +23,8 @@ service:
 ```yaml
 containers:
   - name: api
-    image: ghcr.io/acme/api
-    imageTag: "1.2.3"
+    image: mendhak/http-https-echo
+    imageTag: "38"
 
 service:
   ports:
@@ -51,7 +51,7 @@ serviceName: my-app
 containers:
   - name: postgres
     image: postgres
-    imageTag: "16"
+    imageTag: "17"
     volumeMounts:
       - containerPath: /var/lib/postgresql/data
         volume:
@@ -85,8 +85,8 @@ externalSecrets:
 
 containers:
   - name: api
-    image: ghcr.io/acme/api
-    imageTag: "1.2.3"
+    image: mendhak/http-https-echo
+    imageTag: "38"
     volumeMounts:
       - containerPath: /etc/secrets
         volume:
@@ -109,8 +109,8 @@ serviceaccount:
 
 containers:
   - name: api
-    image: ghcr.io/acme/api
-    imageTag: "1.2.3"
+    image: mendhak/http-https-echo
+    imageTag: "38"
 ```
 
 ## Example: Create a ConfigMap + consume via env
@@ -123,7 +123,7 @@ configmap:
 
 containers:
   - name: api
-    image: ghcr.io/acme/api
+    image: mendhak/http-https-echo
     imageTag: latest
     envFrom:
       - configMapRef:
@@ -135,8 +135,8 @@ containers:
 ```yaml
 containers:
   - name: api
-    image: ghcr.io/acme/api
-    imageTag: "1.2.3"
+    image: mendhak/http-https-echo
+    imageTag: "38"
 
 extraObjects:
   - apiVersion: policy/v1
