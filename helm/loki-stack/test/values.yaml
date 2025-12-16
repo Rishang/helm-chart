@@ -1,0 +1,11 @@
+loki:
+  singleBinary:
+    persistence:
+      enabled: true
+      size: 10Gi
+      storageClass: local-path
+    # IMPORTANT: the Loki chart mounts the persistence PVC at /var/loki automatically.
+    # The parent chart's default values mount an emptyDir at /var/loki for the non-persistent case.
+    # When enabling persistence, explicitly clear these to avoid duplicate /var/loki mounts.
+    extraVolumes: []
+    extraVolumeMounts: []

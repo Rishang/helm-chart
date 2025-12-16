@@ -26,9 +26,16 @@ loki:
     replicas: 1
     persistence:
       enabled: false
-      # size: 1Gi
+      # size: 10Gi
+      # storageClass: null
     # Loki stores local data (chunks, ruler rules/WAL, etc.) under /var/loki by default.
     # With readOnlyRootFilesystem=true in the chart defaults, we must mount /var/loki as writable.
+    #
+    # IMPORTANT:
+    # - When you enable `singleBinary.persistence.enabled=true`, the Loki chart already mounts the PVC at /var/loki.
+    # - In that case, you MUST override these to empty lists (e.g. in `test/values.yaml`) to avoid duplicate mounts:
+    #     singleBinary.extraVolumes: []
+    #     singleBinary.extraVolumeMounts: []
     extraVolumes:
       - name: storage
         emptyDir: {}
@@ -111,8 +118,142 @@ alloy:
           }
         }
 
+        // --------------------------------------------------------------------
+        // Metrics collection (Prometheus scrape -> remote_write) via Alloy
+        // --------------------------------------------------------------------
+        // Sends scraped metrics into the in-cluster Prometheus remote-write receiver.
+        // Requires: kube-prometheus-stack.prometheus.prometheusSpec.enableRemoteWriteReceiver=true (set below).
+        prometheus.remote_write "incluster_prometheus" {
+          endpoint {
+            url = "http://{{ .Release.Name }}-kube-prometheus-stack-prometheus:9090/api/v1/write"
+          }
+        }
+
+        // Scrape any pods annotated with prometheus.io/scrape="true"
+        discovery.kubernetes "pods" {
+          role = "pod"
+        }
+
+        discovery.relabel "pods_scrape" {
+          targets = discovery.kubernetes.pods.targets
+
+          rule {
+            source_labels = ["__meta_kubernetes_pod_annotation_prometheus_io_scrape"]
+            regex         = "true"
+            action        = "keep"
+          }
+
+          // Support prometheus.io/path
+          rule {
+            source_labels = ["__meta_kubernetes_pod_annotation_prometheus_io_path"]
+            regex         = "(.+)"
+            target_label  = "__metrics_path__"
+            replacement   = "$1"
+            action        = "replace"
+          }
+
+          // Support prometheus.io/port; fall back to podIP:9100 if not set.
+          rule {
+            source_labels = ["__meta_kubernetes_pod_ip", "__meta_kubernetes_pod_annotation_prometheus_io_port"]
+            regex         = "(.+);(.+)"
+            target_label  = "__address__"
+            replacement   = "$1:$2"
+            action        = "replace"
+          }
+          rule {
+            source_labels = ["__address__"]
+            regex         = "^$"
+            target_label  = "__address__"
+            replacement   = "__meta_kubernetes_pod_ip:9100"
+            action        = "replace"
+          }
+
+          // Useful labels
+          rule {
+            source_labels = ["__meta_kubernetes_namespace"]
+            target_label  = "namespace"
+            action        = "replace"
+          }
+          rule {
+            source_labels = ["__meta_kubernetes_pod_name"]
+            target_label  = "pod"
+            action        = "replace"
+          }
+          rule {
+            source_labels = ["__meta_kubernetes_pod_container_name"]
+            target_label  = "container"
+            action        = "replace"
+          }
+        }
+
+        prometheus.scrape "pods" {
+          targets    = discovery.relabel.pods_scrape.output
+          forward_to = [prometheus.remote_write.incluster_prometheus.receiver]
+        }
+
+        // Scrape kube-state-metrics and node-exporter deployed by kube-prometheus-stack.
+        discovery.kubernetes "endpoints" {
+          role = "endpoints"
+          namespaces {
+            names = ["{{ .Release.Namespace }}"]
+          }
+        }
+
+        discovery.relabel "kube_state_metrics" {
+          targets = discovery.kubernetes.endpoints.targets
+          rule {
+            source_labels = ["__meta_kubernetes_service_name"]
+            regex         = "{{ .Release.Name }}-kube-state-metrics"
+            action        = "keep"
+          }
+          rule {
+            source_labels = ["__meta_kubernetes_endpoint_port_name"]
+            regex         = "http"
+            action        = "keep"
+          }
+        }
+
+        prometheus.scrape "kube_state_metrics" {
+          targets    = discovery.relabel.kube_state_metrics.output
+          forward_to = [prometheus.remote_write.incluster_prometheus.receiver]
+        }
+
+        discovery.relabel "node_exporter" {
+          targets = discovery.kubernetes.endpoints.targets
+          rule {
+            source_labels = ["__meta_kubernetes_service_name"]
+            regex         = "{{ .Release.Name }}-prometheus-node-exporter"
+            action        = "keep"
+          }
+          rule {
+            source_labels = ["__meta_kubernetes_endpoint_port_name"]
+            regex         = "http-metrics"
+            action        = "keep"
+          }
+        }
+
+        prometheus.scrape "node_exporter" {
+          targets    = discovery.relabel.node_exporter.output
+          forward_to = [prometheus.remote_write.incluster_prometheus.receiver]
+        }
+
 kube-prometheus-stack:
   enabled: true
+  # Alloy remote_writes into Prometheus, so Prometheus must expose the remote-write receiver.
+  prometheus:
+    prometheusSpec:
+      enableRemoteWriteReceiver: true
+
+  # Avoid double-scraping metrics that Alloy already scrapes (kube-state-metrics + node-exporter).
+  kube-state-metrics:
+    prometheus:
+      monitor:
+        enabled: false
+  prometheus-node-exporter:
+    prometheus:
+      monitor:
+        enabled: false
+
   grafana:
     enabled: true
     # Disable init-chown-data to avoid permission issues with local-path storage

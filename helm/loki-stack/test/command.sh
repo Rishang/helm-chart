@@ -35,6 +35,18 @@ echo "    - Grafana with 5Gi PV"
 echo "    - Alertmanager with 2Gi PV"
 echo ""
 
+# NOTE:
+# - Kubernetes forbids updating StatefulSet fields like volumeClaimTemplates (PVC size/storageClass) in-place.
+# - If you changed Loki persistence settings since the last install, Helm upgrade may fail with:
+#     "updates to statefulset spec ... are forbidden"
+# - To recover while KEEPING PVCs/data, you can recreate the Loki StatefulSet before upgrade:
+#     RECREATE_LOKI_STATEFULSET=true bash command.sh
+if [ "${RECREATE_LOKI_STATEFULSET:-false}" = "true" ]; then
+  echo "==> RECREATE_LOKI_STATEFULSET=true: deleting Loki StatefulSet (PVCs will be kept)..."
+  kubectl delete statefulset -n "$NAMESPACE" "$RELEASE_NAME-loki" --ignore-not-found=true
+  echo ""
+fi
+
 helm upgrade --install $RELEASE_NAME . \
   --namespace $NAMESPACE \
   --values test/values.yaml \
@@ -85,17 +97,17 @@ echo "Username: admin"
 echo ""
 
 echo "==> Port-forward Prometheus (run in separate terminal):"
-echo "kubectl port-forward -n $NAMESPACE svc/$RELEASE_NAME-kube-prometheus-prometheus 9090:9090"
+echo "kubectl port-forward -n $NAMESPACE svc/$RELEASE_NAME-kube-prometheus-stack-prometheus 9090:9090"
 echo "Then access: http://localhost:9090"
 echo ""
 
 echo "==> Port-forward Loki (run in separate terminal):"
-echo "kubectl port-forward -n $NAMESPACE svc/$RELEASE_NAME 3100:3100"
+echo "kubectl port-forward -n $NAMESPACE svc/$RELEASE_NAME-loki 3100:3100"
 echo "Then access: http://localhost:3100"
 echo ""
 
 echo "==> Port-forward Alertmanager (run in separate terminal):"
-echo "kubectl port-forward -n $NAMESPACE svc/$RELEASE_NAME-kube-prometheus-alertmanager 9093:9093"
+echo "kubectl port-forward -n $NAMESPACE svc/$RELEASE_NAME-kube-prometheus-stack-alertmanager 9093:9093"
 echo "Then access: http://localhost:9093"
 echo ""
 
