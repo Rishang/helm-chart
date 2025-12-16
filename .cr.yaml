@@ -1,7 +1,0 @@
-owner: rishang
-git_repo: common-chart
-package_path: .cr-release-packages
-index_path: index.yaml
-charts_dir: helm
-charts_repo_url: https://rishang.github.io/common-chart
-pages_branch: gh-pages
