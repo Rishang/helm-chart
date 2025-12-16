@@ -68,6 +68,23 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
+      - name: Ensure gh-pages branch exists
+        run: |
+          set -euo pipefail
+          if git ls-remote --exit-code origin gh-pages >/dev/null 2>&1; then
+            echo "gh-pages branch already exists"
+          else
+            echo "Creating gh-pages branch"
+            PREV_REF=$(git rev-parse HEAD)
+            git checkout --orphan gh-pages
+            git reset --hard
+            touch .nojekyll
+            git add .nojekyll
+            git commit -m "Initialize gh-pages branch"
+            git push origin gh-pages
+            git checkout "$PREV_REF"
+          fi
+
       - name: Release charts
         uses: helm/chart-releaser-action@v1.7.0
         env:
