@@ -23,6 +23,11 @@ jobs:
         with:
           version: v3.12.0
 
+      - name: Set up GitHub CLI
+        run: |
+          type -p gh >/dev/null || (echo "GitHub CLI is not installed" && exit 1)
+          gh --version
+
       - name: Extract version
         id: version
         run: |
@@ -68,28 +73,52 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-      - name: Ensure gh-pages branch exists
+      - name: Package charts
         run: |
           set -euo pipefail
-          if git ls-remote --exit-code origin gh-pages >/dev/null 2>&1; then
-            echo "gh-pages branch already exists"
-          else
-            echo "Creating gh-pages branch"
-            PREV_REF=$(git rev-parse HEAD)
-            git checkout --orphan gh-pages
-            git reset --hard
-            touch .nojekyll
-            git add .nojekyll
-            git commit -m "Initialize gh-pages branch"
-            git push origin gh-pages
-            git checkout "$PREV_REF"
-          fi
+          mkdir -p .cr-release-packages
+          VERSION="${{ steps.version.outputs.version }}"
+          for CHART in component-chart loki-stack; do
+            CHART_DIR="helm/${CHART}"
+            echo "Packaging ${CHART} version ${VERSION}"
+            helm package "$CHART_DIR" --destination .cr-release-packages
+          done
 
-      - name: Release charts
-        uses: helm/chart-releaser-action@v1.7.0
+      - name: Create chart index
+        run: |
+          set -euo pipefail
+          mkdir -p .cr-index
+          helm repo index .cr-release-packages --url https://rishang.github.io/common-chart/charts --merge .cr-index/index.yaml || \
+          helm repo index .cr-release-packages --url https://rishang.github.io/common-chart/charts
+          mv .cr-release-packages/index.yaml .cr-index/
+
+      - name: Upload chart packages as release assets
+        run: |
+          set -euo pipefail
+          for package in .cr-release-packages/*.tgz; do
+            if [ -f "$package" ]; then
+              echo "Uploading $(basename $package) to release ${{ github.ref_name }}"
+              gh release upload "${{ github.ref_name }}" "$package" --clobber
+            fi
+          done
         env:
-          CR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          charts_dir: helm
-          pages_branch: gh-pages
-          skip_existing: true
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Commit chart index to main
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          
+          # Create charts directory in web/static if it doesn't exist
+          mkdir -p web/static/charts
+          
+          # Copy index.yaml to web/static/charts
+          cp .cr-index/index.yaml web/static/charts/index.yaml
+          
+          # Copy packaged charts to web/static/charts
+          cp .cr-release-packages/*.tgz web/static/charts/ || true
+          
+          git add web/static/charts/
+          git diff --staged --quiet || git commit -m "Update Helm chart index for release ${{ github.ref_name }}"
+          git push origin main
