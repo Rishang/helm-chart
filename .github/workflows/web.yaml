@@ -69,9 +69,6 @@ jobs:
       - name: Build website
         run: pnpm build
 
-      - name: Copy Helm charts to web/static/charts/
-        run: cp -r helm/static/charts/ web/static/charts/
-
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
