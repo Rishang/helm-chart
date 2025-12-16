@@ -9,29 +9,31 @@ This page contains a few copy/paste-ready examples for common `component-chart` 
 
 ```yaml
 containers:
-  - image: ghcr.io/acme/api
-    imageTag: "1.2.3"
-    ports:
-      - port: 8080
+  - name: demo
+    image: nginx
+    imageTag: "latest"
+
 service:
   ports:
     - port: 80
-      containerPort: 8080
 ```
 
 ## Example: Ingress with TLS (cert-manager)
 
 ```yaml
+containers:
+  - name: api
+    image: ghcr.io/acme/api
+    imageTag: "1.2.3"
+
 service:
   ports:
-    - port: 80
-      containerPort: 8080
+    - port: 8080
 
 ingress:
   disabled: false
   certmanager: true
-  annotations:
-    kubernetes.io/ingress.class: nginx
+  ingressClassName: nginx
   rules:
     - host: api.example.com
       path: /
@@ -42,18 +44,20 @@ ingress:
 
 ## Example: Persistent volume (StatefulSet) + mount
 
-When at least one volume is mounted into a container, the chart switches to a StatefulSet and uses a headless `serviceName`.
+When at least one writable volume is mounted into a container, the chart switches to a StatefulSet and uses a headless `serviceName`.
 
 ```yaml
 serviceName: my-app
 
 containers:
-  - image: postgres
+  - name: postgres
+    image: postgres
     imageTag: "16"
     volumeMounts:
       - containerPath: /var/lib/postgresql/data
         volume:
           name: data
+          readOnly: false
 
 volumes:
   - name: data
@@ -81,7 +85,8 @@ externalSecrets:
           key: /prod/app/database_url
 
 containers:
-  - image: ghcr.io/acme/api
+  - name: api
+    image: ghcr.io/acme/api
     imageTag: "1.2.3"
     volumeMounts:
       - containerPath: /etc/secrets
@@ -102,30 +107,38 @@ serviceaccount:
   name: my-app
   annotations:
     eks.amazonaws.com/role-arn: arn:aws:iam::123456789012:role/my-app
+
+containers:
+  - name: api
+    image: ghcr.io/acme/api
+    imageTag: "1.2.3"
 ```
 
 ## Example: Create a ConfigMap + consume via env
 
 ```yaml
 configmap:
-  name: my-app
+  name: api
   data:
     LOG_LEVEL: info
 
 containers:
-  - image: ghcr.io/acme/api
-    imageTag: latest # default value
-    env:
-      - name: LOG_LEVEL
-        valueFrom:
-          configMapKeyRef:
-            name: my-app
-            key: LOG_LEVEL
+  - name: api
+    image: ghcr.io/acme/api
+    imageTag: latest
+    envFrom:
+      - configMapRef:
+          name: api
 ```
 
 ## Example: Render extraObjects verbatim
 
 ```yaml
+containers:
+  - name: api
+    image: ghcr.io/acme/api
+    imageTag: "1.2.3"
+
 extraObjects:
   - apiVersion: policy/v1
     kind: PodDisruptionBudget
@@ -135,7 +148,8 @@ extraObjects:
       minAvailable: 1
       selector:
         matchLabels:
-          app.kubernetes.io/name: my-app
+          app.kubernetes.io/name: devspace-app
+          app.kubernetes.io/component: my-app
 ```
 
 

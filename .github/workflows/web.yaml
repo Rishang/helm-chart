@@ -6,7 +6,7 @@ on:
       - main
     paths:
       - 'web/**'
-      - 'helm/**/docs/**'
+      - 'helm/**'
       - '.github/workflows/web.yaml'
   workflow_dispatch:
 
