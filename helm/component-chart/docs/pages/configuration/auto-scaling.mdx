@@ -45,3 +45,8 @@ The `averageMemory` option expects a fixed amount of memory. The autoscaler will
 
 ### `averageRelativeMemory`
 The `averageRelativeMemory` option expects a percentage number **<u>without</u> `%` suffix**. The autoscaler will try to achieve that, on average, all replicas use this much memory relative to the amount of memory each replica has requested.
+
+
+## See Also
+
+- [startupProbe](./containers.mdx#startupprobe) : Recommended for horizontal pod auto-scaling in order to avoid unnecessary scaling during startup.
