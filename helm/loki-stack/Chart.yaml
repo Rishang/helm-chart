@@ -11,15 +11,10 @@ dependencies:
     repository: https://grafana.github.io/helm-charts
     condition: loki.enabled
 
-  - name: promtail
-    version: "6.17.1"
+  - name: alloy
+    version: "1.5.0"
     repository: https://grafana.github.io/helm-charts
-    condition: promtail.enabled
-
-  - name: fluent-bit
-    version: "2.6.0"
-    repository: https://grafana.github.io/helm-charts
-    condition: fluent-bit.enabled
+    condition: alloy.enabled
 
   - name: kube-prometheus-stack
     version: "80.4.1"

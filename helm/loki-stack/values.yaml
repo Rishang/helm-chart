@@ -6,7 +6,7 @@ loki:
     commonConfig:
       replication_factor: 1
     storage:
-      type: 'filesystem'
+      type: "filesystem"
     schemaConfig:
       configs:
         - from: 2024-04-01
@@ -20,12 +20,21 @@ loki:
       retention_period: 168h
       max_query_series: 1000
       max_query_lookback: 168h
-  
+      volume_enabled: true
+
   singleBinary:
     replicas: 1
     persistence:
       enabled: false
       # size: 1Gi
+    # Loki stores local data (chunks, ruler rules/WAL, etc.) under /var/loki by default.
+    # With readOnlyRootFilesystem=true in the chart defaults, we must mount /var/loki as writable.
+    extraVolumes:
+      - name: storage
+        emptyDir: {}
+    extraVolumeMounts:
+      - name: storage
+        mountPath: /var/loki
 
   backend:
     replicas: 0
@@ -36,57 +45,71 @@ loki:
   gateway:
     enabled: true
 
-fluent-bit:
-  enabled: false
-
-promtail:
+alloy:
   enabled: true
-  resources:
-    limits:
-      cpu: 200m
-      memory: 128Mi
-    requests:
-      cpu: 100m
-      memory: 128Mi
-  # Increase file descriptor limits
-  daemonset:
-    enabled: true
-  containerSecurityContext:
-    readOnlyRootFilesystem: true
-    capabilities:
-      drop:
-        - ALL
-    allowPrivilegeEscalation: false
-  config:
-    clients:
-      - url: http://{{ .Release.Name }}-loki:3100/loki/api/v1/push
-    positions:
-      filename: /tmp/positions.yaml
-    scrape_configs:
-      - job_name: kubernetes-pods
-        kubernetes_sd_configs:
-          - role: pod
-        relabel_configs:
-          # Only scrape pods with specific labels to reduce file watches
-          - source_labels: [__meta_kubernetes_pod_label_app]
-            action: keep
-            regex: .+
-          - source_labels: [__meta_kubernetes_pod_container_name]
-            target_label: container
-          - source_labels: [__meta_kubernetes_pod_name]
-            target_label: pod
-          - source_labels: [__meta_kubernetes_namespace]
-            target_label: namespace
-          - source_labels: [__meta_kubernetes_pod_node_name]
-            target_label: node
-        pipeline_stages:
-          - docker: {}
-    limits_config:
-      # Limit the number of files Promtail can watch
-      readline_rate: 100
-      readline_burst: 1000
-      # Max number of active streams
-      max_streams: 5000
+  # IMPORTANT: the Alloy chart expects config under the nested `alloy:` key.
+  alloy:
+    mounts:
+      # Mount host /var/log so we can read /var/log/containers and /var/log/pods for ALL pods/namespaces.
+      varlog: true
+    configMap:
+      content: |
+        // Standard Kubernetes container log locations on most nodes.
+        local.file_match "kubernetes" {
+          path_targets = [
+            {"__path__" = "/var/log/containers/*.log"},
+            {"__path__" = "/var/log/pods/*/*/*.log"},
+          ]
+        }
+
+        loki.source.file "kubernetes" {
+          targets    = local.file_match.kubernetes.targets
+          forward_to = [loki.process.kubernetes.receiver]
+        }
+
+        // Parse CRI log format and enrich with basic k8s metadata from the filename.
+        loki.process "kubernetes" {
+          stage.cri {}
+
+          // /var/log/containers/<pod>_<namespace>_<container>-<container_id>.log
+          // Note: container names often include '-', so we match container_id as the final -<hex>.
+          stage.regex {
+            source     = "filename"
+            expression = "/var/log/containers/(?P<pod>[^_]+)_(?P<namespace>[^_]+)_(?P<container>.+)-(?P<container_id>[a-f0-9]{64})\\.log"
+          }
+
+          stage.labels {
+            values = {
+              namespace = "namespace",
+              pod       = "pod",
+              container = "container",
+              job       = "kubernetes-logs",
+            }
+          }
+
+          // /var/log/pods/<namespace>_<pod>_<uid>/<container>/<n>.log
+          stage.regex {
+            source     = "filename"
+            expression = "/var/log/pods/(?P<namespace>[^_]+)_(?P<pod>[^_]+)_[^/]+/(?P<container>[^/]+)/\\d+\\.log"
+          }
+
+          stage.labels {
+            values = {
+              namespace = "namespace",
+              pod       = "pod",
+              container = "container",
+              job       = "kubernetes-logs",
+            }
+          }
+
+          forward_to = [loki.write.endpoint.receiver]
+        }
+
+        loki.write "endpoint" {
+          endpoint {
+            url = "http://{{ .Release.Name }}-loki:3100/loki/api/v1/push"
+          }
+        }
 
 kube-prometheus-stack:
   enabled: true
