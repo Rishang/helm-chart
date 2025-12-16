@@ -19,7 +19,7 @@ Components require you to specify separete volumes for each component, i.e. the 
 :::
 
 ## Define Volumes
-DevSpace components allow you to define the following types of Kubernetes volumes:
+You can define the following types of Kubernetes volumes:
 - [Persistent volumes](#persistent-volumes)
 - [ConfigMap volumes](#configmap-volumes)
 - [Secret volumes](#secret-volumes)
@@ -47,7 +47,7 @@ volumes:
 </details>
 
 ### `emptyDir` Volumes
-Using DevSpace components, you can define temporary volumes to share files between containers of a Pod according to [Kubernetes EmptyDirVolumeSource specification](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.22/#emptydirvolumesource-v1-core)
+You can define temporary volumes to share files between containers of a Pod according to [Kubernetes EmptyDirVolumeSource specification](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.22/#emptydirvolumesource-v1-core)
 ```yaml
 volumes:
 - name: temp-storage
@@ -69,7 +69,7 @@ volumes:
 </details>
 
 ### ConfigMap Volumes
-Using DevSpace components, you can define Kubernetes ConfigMaps as volumes according to the [Kubernetes ConfigMapVolumeSource specification](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.22/#configmapvolumesource-v1-core):
+You can define Kubernetes ConfigMaps as volumes according to the [Kubernetes ConfigMapVolumeSource specification](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.22/#configmapvolumesource-v1-core):
 ```yaml
 volumes:
 - name: nginx-config
@@ -91,7 +91,7 @@ volumes:
 </details>
 
 ### Secret Volumes
-Using DevSpace components, you can define Kubernetes Secrets as volumes according to the [Kubernetes SecretVolumeSource specification](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.22/#secretvolumesource-v1-core):
+You can define Kubernetes Secrets as volumes according to the [Kubernetes SecretVolumeSource specification](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.22/#secretvolumesource-v1-core):
 ```yaml
 volumes:
 - name: secret-token
@@ -114,7 +114,7 @@ volumes:
 
 
 ### HostPath Volumes
-Using DevSpace components, you can define your Node's filesystem as volumes according to the [Kubernetes HostPath specification](https://kubernetes.io/docs/concepts/storage/volumes/#hostpath):
+You can define your Node's filesystem as volumes according to the [Kubernetes HostPath specification](https://kubernetes.io/docs/concepts/storage/volumes/#hostpath):
 ```yaml
 volumes:
 - name: docker-sock
