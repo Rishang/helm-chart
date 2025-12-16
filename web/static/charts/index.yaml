@@ -2,17 +2,17 @@ apiVersion: v1
 entries:
   component-chart:
   - apiVersion: v2
-    created: "2025-12-16T12:25:01.186563955+05:30"
+    created: "2025-12-16T12:32:11.94433067+05:30"
     description: A general purpose helm chart for deploying components of an application
-    digest: 385ec101df6f0745b94fe25d8ddf6bf733ba9a2630e340e778f1b9d18fef2cd1
+    digest: c0a245e930aa152a862f93a0ff22448d45965670ebac509ae2236722da48f932
     name: component-chart
     urls:
-    - https://rishang.github.io/common-chart/charts/component-chart-0.0.0.tgz
-    version: 0.0.0
+    - https://rishang.github.io/common-chart/charts/component-chart-0.0.2.tgz
+    version: 0.0.2
   loki-stack:
   - apiVersion: v2
     appVersion: "1.0"
-    created: "2025-12-16T12:25:01.223170298+05:30"
+    created: "2025-12-16T12:32:11.982637265+05:30"
     dependencies:
     - condition: loki.enabled
       name: loki
@@ -32,13 +32,13 @@ entries:
       version: 77.12.1
     description: A Helm chart for Loki logging stack with Grafana, Prometheus, Promtail,
       and Fluent Bit
-    digest: d6bb7bd3664fd9cd5b1423854ad78aab45f19d933298cf915cfdc94b1e5f654d
+    digest: 92fc522c3413ef89de86805af915971656b6eaba23a835fc21fec67ef2ab90e4
     maintainers:
     - email: maintainer@example.com
       name: loki-stack-maintainer
     name: loki-stack
     type: application
     urls:
-    - https://rishang.github.io/common-chart/charts/loki-stack-1.0.0.tgz
-    version: 1.0.0
-generated: "2025-12-16T12:25:01.18621019+05:30"
+    - https://rishang.github.io/common-chart/charts/loki-stack-0.0.1.tgz
+    version: 0.0.1
+generated: "2025-12-16T12:32:11.943720883+05:30"

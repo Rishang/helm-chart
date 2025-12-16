@@ -11,12 +11,8 @@ tasks:
     cmds:
     - pnpm install
     - pnpm build
-  helm-index-update:
-    desc: Update Helm repository index
-    cmds:
-    - helm repo index web/static/charts --url https://rishang.github.io/common-chart/charts
 
-  helm-package-publish:
+  helm-package-index:
     desc: Package Helm charts and update repository index
     cmds:
     - echo "Adding required Helm repositories..."
@@ -39,3 +35,4 @@ tasks:
     - echo "✅ Charts packaged successfully!"
     - echo "📦 Files created in web/static/charts/"
     - ls -lh web/static/charts/
+
