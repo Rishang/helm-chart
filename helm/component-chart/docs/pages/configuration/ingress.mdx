@@ -32,7 +32,7 @@ containers:
   image: mendhak/http-https-echo
 service:
   ports:
-  - port: 3000
+  - port: 8080
 ingress:
   rules:
   - host: my-static-host.tld
@@ -55,7 +55,7 @@ containers:
   image: mendhak/http-https-echo
 service:
   ports:
-  - port: 3000
+  - port: 8080
 ingress:
   rules:
   - host: my-static-host.tld
@@ -77,7 +77,7 @@ containers:
   image: mendhak/http-https-echo
 service:
   ports:
-  - port: 3000
+  - port: 8080
 ingress:
   rules:
   - host: my-static-host.tld
@@ -99,12 +99,11 @@ containers:
   image: mendhak/http-https-echo
 service:
   ports:
-  - port: 3000
-  - port: 8000
+  - port: 8080
 ingress:
   rules:
   - host: my-static-host.tld
-    servicePort: 8000
+    servicePort: 8080
 ```
 
 
@@ -128,10 +127,10 @@ ingress:
   rules:
   - host: my-static-host.tld
     serviceName: my-custom-k8s-service
-    servicePort: 8000
+    servicePort: 8080
 ```
 **Explanation:**  
-This example configuration would only create an ingress for a service called `my-custom-k8s-service` and forward the traffic from `my-static-host.tld` to port `8000` of this service.
+This example configuration would only create an ingress for a service called `my-custom-k8s-service` and forward the traffic from `my-static-host.tld` to port `8080` of this service.
 
 
 ## `tls`
@@ -151,7 +150,7 @@ containers:
   image: mendhak/http-https-echo
 service:
   ports:
-  - port: 3000
+  - port: 8080
 ingress:
   tls: true
   rules:
@@ -174,7 +173,7 @@ containers:
   image: mendhak/http-https-echo
 service:
   ports:
-  - port: 3000
+  - port: 8080
 ingress:
   tls: true
   tlsClusterIssuer: staging-issuer
@@ -198,7 +197,7 @@ containers:
   image: mendhak/http-https-echo
 service:
   ports:
-  - port: 3000
+  - port: 8080
 ingress:
   ingressClassName: traefik
   tls: true
@@ -218,7 +217,7 @@ containers:
   image: mendhak/http-https-echo
 service:
   ports:
-  - port: 3000
+  - port: 8080
 ingress:
   name: custom-ingress-name
   tls: true
@@ -255,7 +254,7 @@ containers:
   image: mendhak/http-https-echo
 service:
   ports:
-  - port: 3000
+  - port: 8080
 ingress:
   tls: true
   rules:
@@ -291,7 +290,7 @@ containers:
   image: mendhak/http-https-echo
 service:
   ports:
-  - port: 3000
+  - port: 8080
 ingress:
   tls: true
   rules:
