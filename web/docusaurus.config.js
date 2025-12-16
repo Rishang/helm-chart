@@ -81,11 +81,34 @@ const config = {
           //   position: 'left',
           //   label: 'component-chart',
           // },
+          {
+            href: 'https://github.com/Rishang/common-chart/stargazers',
+            position: 'right',
+            className: 'header-github-star',
+            'aria-label': 'Star on GitHub',
+          },
+          {
+            href: 'https://github.com/Rishang/common-chart',
+            position: 'right',
+            className: 'header-github-link',
+            'aria-label': 'GitHub repository',
+          },
         ],
       },
       footer: {
         style: 'dark',
-        copyright: `Copyright © ${new Date().getFullYear()} common-chart`,
+        // copyright: ``,
+        links: [
+          {
+            title: 'Community',
+            items: [
+              {
+                label: 'GitHub',
+                href: 'https://github.com/Rishang/common-chart',
+              },
+            ],
+          },
+        ],
       },
       prism: {
         theme: lightCodeTheme,
