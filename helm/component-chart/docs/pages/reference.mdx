@@ -51,10 +51,9 @@ The `values.yaml` is organized into the following main sections:
 ```yaml
 # Simple web application
 containers:
-  - image: nginx
+  - name: web
+    image: nginx
     imageTag: "1.21"
-    ports:
-      - port: 80
 
 service:
   ports:

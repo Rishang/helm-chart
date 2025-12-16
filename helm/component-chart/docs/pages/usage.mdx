@@ -31,7 +31,8 @@ deployments:
     componentChart: true
     values:
       containers:
-      - image: "dscr.io/username/mysql"
+      - name: mysql
+        image: "dscr.io/username/mysql"
         volumeMounts:
         - containerPath: /var/lib/mysql
           volume:

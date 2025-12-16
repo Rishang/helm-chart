@@ -19,9 +19,11 @@ The `image` option is mandatory and expects a string with the image repository.
 #### Example: Set `image` for containers
 ```yaml
 containers:
-- image: dscr.io/username/my-backend-image
+- name: backend
+  image: dscr.io/username/my-backend-image
   imageTag: "1.15"
-- image: busybox # if imageTag is not set, it defaults to "latest"
+- name: sidecar
+  image: busybox # if imageTag is not set, it defaults to "latest"
 ```
 The example above would create a pod with two containers:
 
@@ -36,7 +38,8 @@ The chart renders the final image as `{{ image }}:{{ imageTag }}`. If `imageTag`
 #### Example: Set `image` + `imageTag`
 ```yaml
 containers:
-- image: dscr.io/username/api-server
+- name: api
+  image: dscr.io/username/api-server
   imageTag: "1.2.3"
 ```
 
@@ -47,7 +50,8 @@ The `command` option is optional and expects an array of strings. This option is
 #### Example: Set `command` and `args` for containers
 ```yaml
 containers:
-- image: dscr.io/username/api-server
+- name: api
+  image: dscr.io/username/api-server
   command:
   - sleep
   args:
@@ -89,7 +93,8 @@ Instead of storing configuration data (e.g. database host, username and password
 #### Example: Set `env` for containers
 ```yaml
 containers:
-- image: "dscr.io/username/mysql"
+- name: mysql
+  image: "dscr.io/username/mysql"
   env:
   - name: MYSQL_USER
     value: "my_user"
@@ -121,7 +126,8 @@ The `containerPath` option expects a string with a path that defines where the v
 #### Example: Mounting Volumes
 ```yaml
 containers:
-- image: "dscr.io/username/mysql"
+- name: mysql
+  image: "dscr.io/username/mysql"
   volumeMounts:
   - containerPath: /var/lib/mysql
     volume:
@@ -171,7 +177,8 @@ You can set resource limits and resource requests for the following resources:
 To limit the resources of a container, simply configure the `limits` within the `resources` section of the container.
 ```yaml
 containers:
-- image: dscr.io/username/api-server
+- name: api
+  image: dscr.io/username/api-server
   resources:
     limits:
       cpu: 400m
@@ -191,7 +198,8 @@ Resource limits should always be higher than the resource requests. Because reso
 To allocate/reserve resources for a container, simply configure the `requests` within the `resources` section of the container.
 ```yaml
 containers:
-- image: dscr.io/username/api-server
+- name: api
+  image: dscr.io/username/api-server
   imageTag: latest
   resources:
     requests:
@@ -211,7 +219,8 @@ The `livenessProbe` option is optional and expects a [Kubernetes livenessProbe](
 #### Example: HTTP liveness probe
 ```yaml
 containers:
-- image: dscr.io/username/api-server
+- name: api
+  image: dscr.io/username/api-server
   livenessProbe:
     httpGet:
       path: /healthz
@@ -229,7 +238,8 @@ The `readinessProbe` option is optional and expects a [Kubernetes readinessProbe
 #### Example: HTTP readiness probe
 ```yaml
 containers:
-- image: dscr.io/username/api-server
+- name: api
+  image: dscr.io/username/api-server
   readinessProbe:
     httpGet:
       path: /readyz
@@ -249,7 +259,8 @@ Startup probes are useful for **slow-starting** containers, so Kubernetes won’
 #### Example: HTTP startup probe
 ```yaml
 containers:
-- image: dscr.io/username/api-server
+- name: api
+  image: dscr.io/username/api-server
   startupProbe:
     httpGet:
       path: /healthz
