@@ -83,20 +83,13 @@ jobs:
           git fetch origin main:main
           git checkout main
           
-          # Create charts directory in web/static if it doesn't exist
-          mkdir -p web/static/charts
-          
-          # Fetch the latest main branch
-          git fetch origin main:main
-          git checkout main
-          
           # Re-run task to ensure we have the latest
           task helm-package-publish
           
           # Commit and push if there are changes
           git add web/static/charts/
           if ! git diff --staged --quiet; then
-            git commit -m "Update Helm chart index for release ${{ github.ref_name }}"
+            git commit -m "Release Helm charts ${{ github.ref_name }}"
             git push origin main
           else
             echo "No changes to commit"
