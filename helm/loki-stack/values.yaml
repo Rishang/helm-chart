@@ -61,6 +61,7 @@ loki:
 
 alloy:
   enabled: true
+
   # IMPORTANT: the Alloy chart expects config under the nested `alloy:` key.
   alloy:
     mounts:
@@ -68,198 +69,85 @@ alloy:
       varlog: true
     configMap:
       content: |
-        // Standard Kubernetes container log locations on most nodes.
+        // 1. Target /var/log/pods (The Source of Truth)
         local.file_match "kubernetes" {
           path_targets = [
-            {"__path__" = "/var/log/containers/*.log"},
             {"__path__" = "/var/log/pods/*/*/*.log"},
           ]
         }
 
+        // 2. Parse metadata (Updated Regex for /pods/ structure)
+        discovery.relabel "kubernetes" {
+          targets = local.file_match.kubernetes.targets
+
+          // Path structure: /var/log/pods/<namespace>_<pod_name>_<uid>/<container_name>/<restart_count>.log
+
+          // Extract Namespace ($1) - Matches text before the first underscore
+          rule {
+            source_labels = ["__path__"]
+            regex         = ".*/var/log/pods/([^_]+)_.*"
+            target_label  = "namespace"
+          }
+
+          // Extract Pod Name ($1) - Matches text between first and second underscore
+          rule {
+            source_labels = ["__path__"]
+            regex         = ".*/var/log/pods/[^_]+_([^_]+)_.*"
+            target_label  = "pod"
+          }
+
+          // Extract Container Name ($1) - Matches the folder name after the UID
+          rule {
+            source_labels = ["__path__"]
+            regex         = ".*/var/log/pods/[^_]+_[^_]+_[^/]+/([^/]+)/.*"
+            target_label  = "container"
+          }
+
+          rule {
+            target_label = "job"
+            replacement  = "kubernetes-logs"
+          }
+
+          // Node Name (Must come from Env Var, not metadata)
+          rule {
+            target_label = "node_name"
+            replacement  = sys.env("HOSTNAME") // Ensure this Env Var is set on your pod
+          }
+        }
+
+        // 3. Ingest
         loki.source.file "kubernetes" {
-          targets    = local.file_match.kubernetes.targets
+          targets    = discovery.relabel.kubernetes.output
           forward_to = [loki.process.kubernetes.receiver]
         }
 
-        // Parse CRI log format and enrich with basic k8s metadata from the filename.
+        // 4. Process
         loki.process "kubernetes" {
           stage.cri {}
 
-          // /var/log/containers/<pod>_<namespace>_<container>-<container_id>.log
-          // Note: container names often include '-', so we match container_id as the final -<hex>.
-          stage.regex {
-            source     = "filename"
-            expression = "/var/log/containers/(?P<pod>[^_]+)_(?P<namespace>[^_]+)_(?P<container>.+)-(?P<container_id>[a-f0-9]{64})\\.log"
-          }
-
+          // Ensure labels are applied
           stage.labels {
-            values = {
-              namespace = "namespace",
-              pod       = "pod",
-              container = "container",
-              job       = "kubernetes-logs",
-            }
-          }
-
-          // /var/log/pods/<namespace>_<pod>_<uid>/<container>/<n>.log
-          stage.regex {
-            source     = "filename"
-            expression = "/var/log/pods/(?P<namespace>[^_]+)_(?P<pod>[^_]+)_[^/]+/(?P<container>[^/]+)/\\d+\\.log"
-          }
-
-          stage.labels {
-            values = {
-              namespace = "namespace",
-              pod       = "pod",
-              container = "container",
-              job       = "kubernetes-logs",
-            }
+              values = {
+                namespace = "namespace",
+                pod       = "pod",
+                container = "container",
+                job       = "job",
+                node_name = "node_name",
+              }
           }
 
           forward_to = [loki.write.endpoint.receiver]
         }
 
+        // 5. Send
         loki.write "endpoint" {
           endpoint {
-            url = "http://{{ .Release.Name }}-loki:3100/loki/api/v1/push"
+            url = "http://{{ .Release.Name }}-loki-gateway/loki/api/v1/push"
           }
-        }
-
-        // --------------------------------------------------------------------
-        // Metrics collection (Prometheus scrape -> remote_write) via Alloy
-        // --------------------------------------------------------------------
-        // Sends scraped metrics into the in-cluster Prometheus remote-write receiver.
-        // Requires: kube-prometheus-stack.prometheus.prometheusSpec.enableRemoteWriteReceiver=true (set below).
-        prometheus.remote_write "incluster_prometheus" {
-          endpoint {
-            url = "http://{{ .Release.Name }}-kube-prometheus-stack-prometheus:9090/api/v1/write"
-          }
-        }
-
-        // Scrape any pods annotated with prometheus.io/scrape="true"
-        discovery.kubernetes "pods" {
-          role = "pod"
-        }
-
-        discovery.relabel "pods_scrape" {
-          targets = discovery.kubernetes.pods.targets
-
-          rule {
-            source_labels = ["__meta_kubernetes_pod_annotation_prometheus_io_scrape"]
-            regex         = "true"
-            action        = "keep"
-          }
-
-          // Support prometheus.io/path
-          rule {
-            source_labels = ["__meta_kubernetes_pod_annotation_prometheus_io_path"]
-            regex         = "(.+)"
-            target_label  = "__metrics_path__"
-            replacement   = "$1"
-            action        = "replace"
-          }
-
-          // Support prometheus.io/port; fall back to podIP:9100 if not set.
-          rule {
-            source_labels = ["__meta_kubernetes_pod_ip", "__meta_kubernetes_pod_annotation_prometheus_io_port"]
-            regex         = "(.+);(.+)"
-            target_label  = "__address__"
-            replacement   = "$1:$2"
-            action        = "replace"
-          }
-          rule {
-            source_labels = ["__address__"]
-            regex         = "^$"
-            target_label  = "__address__"
-            replacement   = "__meta_kubernetes_pod_ip:9100"
-            action        = "replace"
-          }
-
-          // Useful labels
-          rule {
-            source_labels = ["__meta_kubernetes_namespace"]
-            target_label  = "namespace"
-            action        = "replace"
-          }
-          rule {
-            source_labels = ["__meta_kubernetes_pod_name"]
-            target_label  = "pod"
-            action        = "replace"
-          }
-          rule {
-            source_labels = ["__meta_kubernetes_pod_container_name"]
-            target_label  = "container"
-            action        = "replace"
-          }
-        }
-
-        prometheus.scrape "pods" {
-          targets    = discovery.relabel.pods_scrape.output
-          forward_to = [prometheus.remote_write.incluster_prometheus.receiver]
-        }
-
-        // Scrape kube-state-metrics and node-exporter deployed by kube-prometheus-stack.
-        discovery.kubernetes "endpoints" {
-          role = "endpoints"
-          namespaces {
-            names = ["{{ .Release.Namespace }}"]
-          }
-        }
-
-        discovery.relabel "kube_state_metrics" {
-          targets = discovery.kubernetes.endpoints.targets
-          rule {
-            source_labels = ["__meta_kubernetes_service_name"]
-            regex         = "{{ .Release.Name }}-kube-state-metrics"
-            action        = "keep"
-          }
-          rule {
-            source_labels = ["__meta_kubernetes_endpoint_port_name"]
-            regex         = "http"
-            action        = "keep"
-          }
-        }
-
-        prometheus.scrape "kube_state_metrics" {
-          targets    = discovery.relabel.kube_state_metrics.output
-          forward_to = [prometheus.remote_write.incluster_prometheus.receiver]
-        }
-
-        discovery.relabel "node_exporter" {
-          targets = discovery.kubernetes.endpoints.targets
-          rule {
-            source_labels = ["__meta_kubernetes_service_name"]
-            regex         = "{{ .Release.Name }}-prometheus-node-exporter"
-            action        = "keep"
-          }
-          rule {
-            source_labels = ["__meta_kubernetes_endpoint_port_name"]
-            regex         = "http-metrics"
-            action        = "keep"
-          }
-        }
-
-        prometheus.scrape "node_exporter" {
-          targets    = discovery.relabel.node_exporter.output
-          forward_to = [prometheus.remote_write.incluster_prometheus.receiver]
         }
 
 kube-prometheus-stack:
   enabled: true
-  # Alloy remote_writes into Prometheus, so Prometheus must expose the remote-write receiver.
-  prometheus:
-    prometheusSpec:
-      enableRemoteWriteReceiver: true
-
-  # Avoid double-scraping metrics that Alloy already scrapes (kube-state-metrics + node-exporter).
-  kube-state-metrics:
-    prometheus:
-      monitor:
-        enabled: false
-  prometheus-node-exporter:
-    prometheus:
-      monitor:
-        enabled: false
 
   grafana:
     enabled: true
@@ -270,7 +158,7 @@ kube-prometheus-stack:
       - name: Loki
         type: loki
         uid: loki
-        url: http://{{ .Release.Name }}-loki:3100
+        url: http://{{ .Release.Name }}-loki-gateway
         access: proxy
         isDefault: false
         jsonData:
