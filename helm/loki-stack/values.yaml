@@ -63,7 +63,7 @@ loki:
   write:
     replicas: 0
   gateway:
-    enabled: true
+    enabled: false
 
 alloy:
   enabled: true
