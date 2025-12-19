@@ -154,7 +154,7 @@ alloy:
         // 5. Send
         loki.write "endpoint" {
           endpoint {
-            url = "http://{{ .Release.Name }}-loki-gateway/loki/api/v1/push"
+            url = "http://{{ .Release.Name }}-loki:3100/loki/api/v1/push"
           }
         }
 
@@ -170,7 +170,7 @@ kube-prometheus-stack:
       - name: Loki
         type: loki
         uid: loki
-        url: http://{{ .Release.Name }}-loki-gateway
+        url: http://{{ .Release.Name }}-loki:3100
         access: proxy
         isDefault: false
         jsonData:
