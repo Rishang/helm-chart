@@ -1,0 +1,277 @@
+kube-prometheus-stack:
+  enabled: true
+  grafana:
+    enabled: true
+    ingress:
+      enabled: true
+      hosts: 
+        - grafana.172.18.0.2.nip.io
+    initChownData:
+      enabled: false
+    additionalDataSources:
+      - name: Loki
+        type: loki
+        uid: loki
+        url: http://{{ .Release.Name }}-loki:3100
+        access: proxy
+        isDefault: false
+        jsonData:
+          maxLines: 1000
+    sidecar:
+      datasources:
+        enabled: true
+        defaultDatasourceEnabled: true
+        isDefaultDatasource: true 
+        name: Thanos
+        url: "http://uos-thanos-query:10902"
+  prometheus:
+    thanosService:
+      enabled: true
+    prometheusSpec:
+      retention: 1d
+      shards: 1
+      externalLabels:
+        prometheus: thanos
+        prometheus-shard: prometheus-00
+      thanos:
+        baseImage: quay.io/thanos/thanos:v0.38.0
+        objectStorageConfig:
+          secret:
+            type: s3
+            config:
+              bucket: thanos
+              endpoint: uos-rustfs-svc:9000
+              access_key: rustfsadmin
+              secret_key: rustfsadmin
+              insecure: true
+      securityContext:
+        runAsGroup: 2000
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 2000
+
+
+# =====================
+# Tempo
+# =====================
+tempo:
+  enabled: false
+
+# =====================
+# RustFS (Object Storage)
+# =====================
+rustfs:
+  enabled: true
+  replicaCount: 4
+  mode:
+    standalone:
+      enabled: false
+    distributed:
+      enabled: true
+
+  secret:
+    existingSecret: ""
+    rustfs:
+      access_key: rustfsadmin
+      secret_key: rustfsadmin
+
+  config:
+    rustfs:
+      volume: "/data/rustfs0,/data/rustfs1,/data/rustfs2,/data/rustfs3"
+      address: "0.0.0.0:9000"
+      console_address: "0.0.0.0:9001"
+      log_level: "debug"
+      rust_log: "debug"
+      console_enable: "true"
+      obs_log_directory: "/logs"
+
+  ingress:
+    enabled: true
+    className: "traefik" # Specify the classname, traefik or nginx. Different classname has different annotations for session sticky.
+    traefikAnnotations:
+      traefik.ingress.kubernetes.io/service.sticky.cookie: "true"
+      traefik.ingress.kubernetes.io/service.sticky.cookie.httponly: "true"
+      traefik.ingress.kubernetes.io/service.sticky.cookie.name: rustfs
+      traefik.ingress.kubernetes.io/service.sticky.cookie.samesite: none
+      traefik.ingress.kubernetes.io/service.sticky.cookie.secure: "true"
+    nginxAnnotations:
+      nginx.ingress.kubernetes.io/affinity: cookie
+      nginx.ingress.kubernetes.io/session-cookie-expires: "3600"
+      nginx.ingress.kubernetes.io/session-cookie-hash: sha1
+      nginx.ingress.kubernetes.io/session-cookie-max-age: "3600"
+      nginx.ingress.kubernetes.io/session-cookie-name: rustfs
+    hosts:
+      - host: rustfs.172.18.0.2.nip.io
+        paths:
+          - path: /
+            pathType: ImplementationSpecific
+    # tls:
+    #   - secretName: rustfs-tls
+    #     hosts:
+    #       - your.rustfs.com
+
+  tls:
+    enabled: false
+    crt: tls.crt
+    key: tls.key
+
+  resources:
+    limits:
+      cpu: 200m
+      memory: 512Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+
+
+  nodeSelector: {}
+
+  tolerations: []
+
+  affinity: {}
+
+  storageclass:
+    name: local-path
+    dataStorageSize: 256Mi
+    logStorageSize: 256Mi
+
+  extraManifests: []
+
+# Thanos Query
+
+thanos:
+  enabled: true
+  additionalEndpoints: 
+    - "dns+uos-kube-prometheus-stack-thanos-discovery.default.svc.cluster.local:10901"
+  objstoreConfig:
+    value: |-
+      type: s3
+      config:
+        bucket: thanos
+        endpoint: uos-rustfs-svc:9000
+        access_key: rustfsadmin
+        secret_key: rustfsadmin
+        insecure: true
+
+loki:
+  enabled: true
+  deploymentMode: SingleBinary
+  storage:
+    use_thanos_objstore: true
+    object_store:
+      type: s3
+      storage_prefix: loki_
+      s3:
+        endpoint: uos-rustfs-svc:9000
+        access_key_id: rustfsadmin
+        secret_access_key: rustfsadmin
+        insecure: true
+  loki:
+    auth_enabled: false
+    commonConfig:
+      replication_factor: 1
+    storage:
+      type: "filesystem"
+    schemaConfig:
+      configs:
+        - from: 2024-04-01
+          store: tsdb
+          object_store: filesystem
+          schema: v13
+          index:
+            prefix: loki_index_
+            period: 24h
+    limits_config:
+      retention_period: 168h
+      max_query_series: 1000
+      max_query_lookback: 168h
+      volume_enabled: true
+
+  singleBinary:
+    replicas: 1
+    persistence:
+      enabled: false
+      # size: 1Gi
+    # Loki stores local data (chunks, ruler rules/WAL, etc.) under /var/loki by default.
+    # With readOnlyRootFilesystem=true in the chart defaults, we must mount /var/loki as writable.
+    extraVolumes:
+      - name: storage
+        emptyDir: {}
+    extraVolumeMounts:
+      - name: storage
+        mountPath: /var/loki
+
+  backend:
+    replicas: 0
+  read:
+    replicas: 0
+  write:
+    replicas: 0
+  gateway:
+    enabled: true
+
+alloy:
+  enabled: true
+  # IMPORTANT: the Alloy chart expects config under the nested `alloy:` key.
+  alloy:
+    mounts:
+      # Mount host /var/log so we can read /var/log/containers and /var/log/pods for ALL pods/namespaces.
+      varlog: true
+    configMap:
+      content: |
+        // Standard Kubernetes container log locations on most nodes.
+        local.file_match "kubernetes" {
+          path_targets = [
+            {"__path__" = "/var/log/containers/*.log"},
+            {"__path__" = "/var/log/pods/*/*/*.log"},
+          ]
+        }
+
+        loki.source.file "kubernetes" {
+          targets    = local.file_match.kubernetes.targets
+          forward_to = [loki.process.kubernetes.receiver]
+        }
+
+        // Parse CRI log format and enrich with basic k8s metadata from the filename.
+        loki.process "kubernetes" {
+          stage.cri {}
+
+          // /var/log/containers/<pod>_<namespace>_<container>-<container_id>.log
+          // Note: container names often include '-', so we match container_id as the final -<hex>.
+          stage.regex {
+            source     = "filename"
+            expression = "/var/log/containers/(?P<pod>[^_]+)_(?P<namespace>[^_]+)_(?P<container>.+)-(?P<container_id>[a-f0-9]{64})\\.log"
+          }
+
+          stage.labels {
+            values = {
+              namespace = "namespace",
+              pod       = "pod",
+              container = "container",
+              job       = "kubernetes-logs",
+            }
+          }
+
+          // /var/log/pods/<namespace>_<pod>_<uid>/<container>/<n>.log
+          stage.regex {
+            source     = "filename"
+            expression = "/var/log/pods/(?P<namespace>[^_]+)_(?P<pod>[^_]+)_[^/]+/(?P<container>[^/]+)/\\d+\\.log"
+          }
+
+          stage.labels {
+            values = {
+              namespace = "namespace",
+              pod       = "pod",
+              container = "container",
+              job       = "kubernetes-logs",
+            }
+          }
+
+          forward_to = [loki.write.endpoint.receiver]
+        }
+
+        loki.write "endpoint" {
+          endpoint {
+            url = "http://{{ .Release.Name }}-loki:3100/loki/api/v1/push"
+          }
+        }

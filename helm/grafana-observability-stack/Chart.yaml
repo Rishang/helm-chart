@@ -1,0 +1,34 @@
+apiVersion: v2
+name: unified-observability-stack
+description: >
+  Umbrella Helm chart to deploy and manage observability components
+  such as Grafana, Loki, Tempo, Thanos, and MinIO.
+type: application
+version: 0.2.0
+appVersion: "1.0.0"
+
+dependencies:
+  - name: loki
+    version: 6.49.0
+    repository: https://grafana.github.io/helm-charts
+    condition: loki.enabled
+  - name: alloy
+    version: "1.5.0"
+    repository: https://grafana.github.io/helm-charts
+    condition: alloy.enabled
+  - name: tempo
+    version: 1.24.1
+    repository: https://grafana.github.io/helm-charts
+    condition: tempo.enabled
+  - name: kube-prometheus-stack
+    version: 80.4.1
+    repository: https://prometheus-community.github.io/helm-charts
+    condition: kube-prometheus-stack.enabled
+  - name: rustfs
+    version: 0.0.73
+    repository: https://charts.rustfs.com
+    condition: rustfs.enabled
+  - name: thanos
+    version: 0.10.0
+    repository: https://solidcharts.github.io/helm-charts
+    condition: thanos.enabled

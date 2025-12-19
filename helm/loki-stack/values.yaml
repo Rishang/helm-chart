@@ -1,14 +1,17 @@
 loki:
   enabled: true
   deploymentMode: SingleBinary
-  image:
-    tag: "3.5.5"
   loki:
     auth_enabled: false
     commonConfig:
       replication_factor: 1
+    # Default Loki container security context override:
+    # With persistence disabled and no /var/loki emptyDir mount, Loki must be allowed to write to /var/loki.
+    # If you prefer readOnlyRootFilesystem=true, enable persistence or add the emptyDir mount under `singleBinary` above.
+    containerSecurityContext:
+      readOnlyRootFilesystem: true
     storage:
-      type: 'filesystem'
+      type: "filesystem"
     schemaConfig:
       configs:
         - from: 2024-04-01
@@ -22,12 +25,30 @@ loki:
       retention_period: 168h
       max_query_series: 1000
       max_query_lookback: 168h
-  
+      volume_enabled: true
+
   singleBinary:
     replicas: 1
     persistence:
       enabled: false
-      # size: 1Gi
+      # size: 10Gi
+      # storageClass: null
+    # Loki stores local data (chunks, ruler rules/WAL, etc.) under /var/loki by default.
+    #
+    # Defaults in this chart keep these empty to avoid the common "duplicate /var/loki mount" issue when
+    # persistence is enabled (the Loki subchart mounts the PVC to /var/loki automatically).
+    extraVolumes: []
+    extraVolumeMounts: []
+    #
+    # If you run WITHOUT persistence *and* you want `readOnlyRootFilesystem: true`, you must mount a writable
+    # volume at /var/loki (example below).
+    #
+    # extraVolumes:
+    #   - name: storage
+    #     emptyDir: {}
+    # extraVolumeMounts:
+    #   - name: storage
+    #     mountPath: /var/loki
 
   backend:
     replicas: 0
@@ -38,60 +59,96 @@ loki:
   gateway:
     enabled: true
 
-fluent-bit:
-  enabled: false
-
-promtail:
+alloy:
   enabled: true
-  resources:
-    limits:
-      cpu: 200m
-      memory: 128Mi
-    requests:
-      cpu: 100m
-      memory: 128Mi
-  # Increase file descriptor limits
-  daemonset:
-    enabled: true
-  containerSecurityContext:
-    readOnlyRootFilesystem: true
-    capabilities:
-      drop:
-        - ALL
-    allowPrivilegeEscalation: false
-  config:
-    clients:
-      - url: http://{{ .Release.Name }}-loki:3100/loki/api/v1/push
-    positions:
-      filename: /tmp/positions.yaml
-    scrape_configs:
-      - job_name: kubernetes-pods
-        kubernetes_sd_configs:
-          - role: pod
-        relabel_configs:
-          # Only scrape pods with specific labels to reduce file watches
-          - source_labels: [__meta_kubernetes_pod_label_app]
-            action: keep
-            regex: .+
-          - source_labels: [__meta_kubernetes_pod_container_name]
-            target_label: container
-          - source_labels: [__meta_kubernetes_pod_name]
-            target_label: pod
-          - source_labels: [__meta_kubernetes_namespace]
-            target_label: namespace
-          - source_labels: [__meta_kubernetes_pod_node_name]
-            target_label: node
-        pipeline_stages:
-          - docker: {}
-    limits_config:
-      # Limit the number of files Promtail can watch
-      readline_rate: 100
-      readline_burst: 1000
-      # Max number of active streams
-      max_streams: 5000
+
+  # IMPORTANT: the Alloy chart expects config under the nested `alloy:` key.
+  alloy:
+    mounts:
+      # Mount host /var/log so we can read /var/log/containers and /var/log/pods for ALL pods/namespaces.
+      varlog: true
+    configMap:
+      content: |
+        // 1. Target /var/log/pods (The Source of Truth)
+        local.file_match "kubernetes" {
+          path_targets = [
+            {"__path__" = "/var/log/pods/*/*/*.log"},
+          ]
+        }
+
+        // 2. Parse metadata (Updated Regex for /pods/ structure)
+        discovery.relabel "kubernetes" {
+          targets = local.file_match.kubernetes.targets
+
+          // Path structure: /var/log/pods/<namespace>_<pod_name>_<uid>/<container_name>/<restart_count>.log
+
+          // Extract Namespace ($1) - Matches text before the first underscore
+          rule {
+            source_labels = ["__path__"]
+            regex         = ".*/var/log/pods/([^_]+)_.*"
+            target_label  = "namespace"
+          }
+
+          // Extract Pod Name ($1) - Matches text between first and second underscore
+          rule {
+            source_labels = ["__path__"]
+            regex         = ".*/var/log/pods/[^_]+_([^_]+)_.*"
+            target_label  = "pod"
+          }
+
+          // Extract Container Name ($1) - Matches the folder name after the UID
+          rule {
+            source_labels = ["__path__"]
+            regex         = ".*/var/log/pods/[^_]+_[^_]+_[^/]+/([^/]+)/.*"
+            target_label  = "container"
+          }
+
+          rule {
+            target_label = "job"
+            replacement  = "kubernetes-logs"
+          }
+
+          // Node Name (Must come from Env Var, not metadata)
+          rule {
+            target_label = "node_name"
+            replacement  = sys.env("HOSTNAME") // Ensure this Env Var is set on your pod
+          }
+        }
+
+        // 3. Ingest
+        loki.source.file "kubernetes" {
+          targets    = discovery.relabel.kubernetes.output
+          forward_to = [loki.process.kubernetes.receiver]
+        }
+
+        // 4. Process
+        loki.process "kubernetes" {
+          stage.cri {}
+
+          // Ensure labels are applied
+          stage.labels {
+              values = {
+                namespace = "namespace",
+                pod       = "pod",
+                container = "container",
+                job       = "job",
+                node_name = "node_name",
+              }
+          }
+
+          forward_to = [loki.write.endpoint.receiver]
+        }
+
+        // 5. Send
+        loki.write "endpoint" {
+          endpoint {
+            url = "http://{{ .Release.Name }}-loki-gateway/loki/api/v1/push"
+          }
+        }
 
 kube-prometheus-stack:
   enabled: true
+
   grafana:
     enabled: true
     # Disable init-chown-data to avoid permission issues with local-path storage
@@ -101,7 +158,7 @@ kube-prometheus-stack:
       - name: Loki
         type: loki
         uid: loki
-        url: http://{{ .Release.Name }}-loki:3100
+        url: http://{{ .Release.Name }}-loki-gateway
         access: proxy
         isDefault: false
         jsonData:
