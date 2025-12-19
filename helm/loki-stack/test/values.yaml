@@ -9,3 +9,7 @@ kube-prometheus-stack:
   grafana:
     adminUser: admin
     adminPassword: admin
+    persistence:
+      enabled: true              # no PVC, data resets on pod restart
+      storageClass: local-path
+      size: 1Gi
