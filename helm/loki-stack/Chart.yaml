@@ -2,8 +2,8 @@ apiVersion: v2
 name: loki-stack
 description: A Helm chart for Loki logging stack with Grafana, Prometheus, Promtail, and Fluent Bit
 type: application
-version: 0.0.1
-appVersion: "1.0"
+version: 1.0.0
+appVersion: "1.0.0"
 
 dependencies:
   - name: loki
