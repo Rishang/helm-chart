@@ -165,7 +165,7 @@ kube-prometheus-stack:
     enabled: true
     # Disable init-chown-data to avoid permission issues with local-path storage
     initChownData:
-      enabled: true
+      enabled: false
     additionalDataSources:
       - name: Loki
         type: loki
