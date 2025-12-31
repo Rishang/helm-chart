@@ -1,6 +1,6 @@
 apiVersion: v2
 name: loki-stack
-description: A Helm chart for Loki logging stack with Grafana, Prometheus, Promtail, and Fluent Bit
+description: Observability stack - Loki for logs, Grafana for visualization, Prometheus for metrics, and Grafana Alloy for log collection (alternative to deprecated Promtail)
 type: application
 version: 1.0.0
 appVersion: "1.0.0"
