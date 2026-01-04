@@ -1,0 +1,191 @@
+---
+title: Examples
+sidebar_label: Examples
+---
+
+This page contains copy/paste-ready examples for common `loki-stack` configuration scenarios.
+
+## Example: Basic Values (Persistence) with log retention
+
+This is a minimal starting point for `values.yaml` enabling persistence.
+
+```yaml
+# values.yaml
+loki:
+  singleBinary:
+    persistence:
+      # To persist Loki data on disk (useful for filesystem mode / local WAL),
+      # enable the PVC:
+      enabled: true
+      size: 10Gi
+      storageClass: default
+    
+    # Loki's retention is controlled by `retention_period` in `limits_config`.
+    # Note that retention enforcement requires the **Compactor** to be running.
+    limits_config:
+      retention_period: 336h # 14 days
+      max_query_series: 1000
+      max_query_lookback: 336h # 14 days
+    
+    # compactor configuration is required for retention cleanup
+    compactor:
+      retention_enabled: true
+      delete_request_cancel_period: 24h
+
+kube-prometheus-stack:
+  grafana:
+    adminUser: admin # Recommended to change
+    adminPassword: admin # Recommended to change
+    persistence:
+      enabled: true
+      storageClass: default
+      size: 1Gi
+```
+
+## Example: S3-based Loki storage (TSDB)
+
+This example switches Loki from filesystem storage to S3.
+
+```yaml
+# values-s3.yaml
+loki:
+  loki:
+    # Loki in S3 mode is typically used with the TSDB schema.
+    schemaConfig:
+      configs:
+        - from: 2024-04-01
+          store: tsdb
+          object_store: s3
+          schema: v13
+          index:
+            prefix: loki_index_
+            period: 24h
+
+    storage:
+      type: s3
+      # See the upstream reference: https://artifacthub.io/packages/helm/grafana/loki
+      bucketNames:
+        chunks: my-loki-chunks
+        ruler: my-loki-ruler
+        # admin: my-loki-admin # only required for some enterprise modes
+      s3:
+        region: us-east-1
+        # Optional for non-AWS S3 endpoints (e.g. MinIO):
+        # endpoint: https://minio.example.com
+        # s3ForcePathStyle: true
+
+  # NOTE: With S3 object storage you generally **do not need a PVC for log storage**.
+  # A PVC is only needed if you want durability for local data (e.g. WAL/cache) across pod restarts.
+  # If you don't care about restart durability, you can keep persistence disabled (default) or use emptyDir.
+```
+
+## Example: Loki Authentication (Internal)
+
+This example configures Loki with `auth_enabled: true` and enables the Gateway with Basic Auth, accessed internally.
+
+```yaml
+# values-auth.yaml
+loki:
+  # Enable the Loki gateway (nginx)
+  gateway:
+    enabled: true
+    basicAuth:
+      enabled: true
+
+  # Define users/tenants (gateway will build htpasswd from this list).
+  # The authenticated username becomes the tenant id (`X-Scope-OrgID`).
+  loki:
+    auth_enabled: true
+    tenants:
+      - name: example-tenant
+        password: example-password
+
+alloy:
+  alloyConfigMapExtra: |
+    loki.write "endpoint" {
+      endpoint {
+        // Use the gateway service (in-cluster):
+        url = "http://{{ .Release.Name }}-gateway/loki/api/v1/push"
+
+        // Basic Auth credentials (user = tenant, pass = tenant password).
+        basic_auth {
+          username = "example-tenant"
+          password = "example-password"
+        }
+      }
+    }
+
+# Configure Grafana datasource to query Loki through the gateway with Basic Auth.
+kube-prometheus-stack:
+  grafana:
+    additionalDataSources:
+      - name: Loki
+        type: loki
+        uid: loki
+        url: http://{{ .Release.Name }}-gateway
+        access: proxy
+        basicAuth: true
+        basicAuthUser: example-tenant
+        jsonData:
+          maxLines: 1000
+        secureJsonData:
+          basicAuthPassword: example-password
+```
+
+
+## Example: Loki Authentication TLS certificates
+
+This example assumes you have a custom Client Certificate or CA you want Alloy to use when validating/connecting to Loki (e.g., via mTLS or self-signed certs).
+
+You must first ensure the certificates are available on the Alloy pod (e.g., via `extraVolumes` in `alloy.alloy`).
+
+```yaml
+# values-tls-client.yaml
+alloy:
+  alloy:
+    # 1. Mount the secret containing certificates into Alloy
+    extraVolumes:
+      - name: loki-certs
+        secret:
+          secretName: loki-certs # Kubernetes Secret containing ca.crt, client.crt, client.key
+    extraVolumeMounts:
+      - name: loki-certs
+        mountPath: /etc/loki/certs
+        readOnly: true
+
+  # 2. Configure Alloy to use the specific certificates
+  alloyConfigMapExtra: |
+    loki.write "endpoint" {
+      endpoint {
+        url = "https://loki-gateway.monitoring.svc:8080/loki/api/v1/push"
+        
+        tls_config {
+          ca_file = "/etc/loki/certs/ca.crt"
+          # Optional: Client authentication (mTLS)
+          # cert_file = "/etc/loki/certs/client.crt"
+          # key_file  = "/etc/loki/certs/client.key"
+          # insecure_skip_verify = false
+        }
+      }
+    }
+```
+
+## Example: Exposing Grafana via Ingress
+
+You can expose the bundled Grafana instance using an Ingress controller.
+
+```yaml
+# values-ingress.yaml
+kube-prometheus-stack:
+  grafana:
+    ingress:
+      enabled: true
+      ingressClassName: nginx
+      hosts:
+        - grafana.example.com
+      path: /
+      tls:
+        - secretName: grafana-tls
+          hosts:
+            - grafana.example.com
+```

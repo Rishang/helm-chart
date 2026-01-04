@@ -11,12 +11,16 @@ export default function Home(): React.ReactElement {
           <h1 className="heroTitle">common-chart</h1>
           <p className="heroSubtitle">
             A docs UI for the Helm charts in this repository. Start with{' '}
-            <Link to="/component-chart/introduction">component-chart</Link>, and we’ll add more doc
-            sets (like loki-stack) over time.
+            <Link to="/component-chart/introduction">component-chart</Link> or{' '}
+            <Link to="/loki-stack/usage">loki-stack</Link>.
           </p>
           <div className="margin-top--md">
             <Link className="button button--primary button--lg" to="/component-chart/introduction">
               Open component-chart docs
+            </Link>
+            <span style={{ marginLeft: 12 }} />
+            <Link className="button button--secondary button--lg" to="/loki-stack/usage">
+              Open loki-stack docs
             </Link>
           </div>
         </div>

@@ -22,9 +22,9 @@ loki:
             prefix: loki_index_
             period: 24h
     limits_config:
-      retention_period: 168h
+      retention_period: 168h # 7 days
       max_query_series: 1000
-      max_query_lookback: 168h
+      max_query_lookback: 168h # 7 days
       volume_enabled: true
   
   chunksCache:
@@ -47,7 +47,7 @@ loki:
     extraVolumeMounts: []
     #
     # If you run WITHOUT persistence *and* you want `readOnlyRootFilesystem: true`, you must mount a writable
-    # volume at /var/loki (example below).
+    # volume at /var/loki (otherwise Loki will fail to write WAL and chunks).
     #
     # extraVolumes:
     #   - name: storage

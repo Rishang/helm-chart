@@ -51,16 +51,18 @@ const config = {
       },
     ],
 
-    // Future: add other chart doc sets as separate docs instances, e.g.:
-    // [
-    //   '@docusaurus/plugin-content-docs',
-    //   {
-    //     id: 'loki-stack',
-    //     path: '../helm/loki-stack/docs/pages',
-    //     routeBasePath: 'loki-stack',
-    //     sidebarPath: require.resolve('./sidebars/loki-stack.js'),
-    //   },
-    // ],
+    [
+      '@docusaurus/plugin-content-docs',
+      {
+        id: 'loki-stack',
+        // Use the chart docs directly, so chart + docs stay together
+        path: '../helm/loki-stack/docs/pages',
+        routeBasePath: 'loki-stack',
+        sidebarPath: require.resolve('./sidebars/loki-stack.js'),
+        showLastUpdateAuthor: false,
+        showLastUpdateTime: false,
+      },
+    ],
   ],
 
   themeConfig:
@@ -74,13 +76,20 @@ const config = {
       navbar: {
         title: 'common-chart',
         items: [
-          // {
-          //   type: 'docSidebar',
-          //   sidebarId: 'componentChartSidebar',
-          //   docsPluginId: 'component-chart',
-          //   position: 'left',
-          //   label: 'component-chart',
-          // },
+          {
+            type: 'docSidebar',
+            sidebarId: 'componentChartSidebar',
+            docsPluginId: 'component-chart',
+            position: 'left',
+            label: 'component-chart',
+          },
+          {
+            type: 'docSidebar',
+            sidebarId: 'lokiStackSidebar',
+            docsPluginId: 'loki-stack',
+            position: 'left',
+            label: 'loki-stack',
+          },
           // {
           //   href: 'https://github.com/Rishang/common-chart/stargazers',
           //   position: 'right',

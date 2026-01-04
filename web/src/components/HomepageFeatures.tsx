@@ -26,10 +26,15 @@ const charts: ChartCard[] = [
   },
   {
     title: 'loki-stack',
-    badge: 'Coming soon',
+    href: '/loki-stack/introduction',
+    badge: 'Available',
     description:
-      'Future chart docs will be added here as additional doc sets (separate sidebar + route).',
-    links: [],
+      'Observability stack: Loki + Grafana Alloy + kube-prometheus-stack, shipped as an umbrella chart.',
+    links: [
+      { label: 'Introduction', href: '/loki-stack/introduction' },
+      { label: 'Usage', href: '/loki-stack/usage' },
+      { label: 'Examples', href: '/loki-stack/examples' },
+    ],
   },
 ];
 

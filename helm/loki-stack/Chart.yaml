@@ -1,6 +1,6 @@
 apiVersion: v2
 name: loki-stack
-description: Observability stack - Loki for logs, Grafana for visualization, Prometheus for metrics, and Grafana Alloy for log collection (alternative to deprecated Promtail)
+description: Observability stack - Loki for logs, Grafana for visualization, Prometheus for metrics, and Grafana Alloy for log collection (alternative to deprecated Promtail) [DOCS => https://rishang.github.io/common-chart/loki-stack/introduction]
 type: application
 version: 1.0.0
 appVersion: "1.0.0"

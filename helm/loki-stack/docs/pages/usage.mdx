@@ -1,0 +1,89 @@
+---
+title: Usage
+sidebar_label: Usage
+---
+
+## What this chart installs
+
+`loki-stack` is an umbrella chart that can deploy:
+
+- **Loki** (logs storage/query) via the `grafana/loki` subchart
+- **Grafana Alloy** (log collection) via the `grafana/alloy` subchart
+- **Prometheus + Grafana** via the `prometheus-community/kube-prometheus-stack` subchart
+
+## Upstream chart references (Artifact Hub)
+
+Artifact Hub install page for this umbrella chart:
+
+- **loki-stack** (`common-charts/loki-stack`): `https://artifacthub.io/packages/helm/common-charts/loki-stack?modal=install`
+
+These are the upstream charts this umbrella chart depends on (see `helm/loki-stack/Chart.yaml`):
+
+- **Loki** (`grafana/loki`): `https://artifacthub.io/packages/helm/grafana/loki`
+- **Alloy** (`grafana/alloy`): `https://artifacthub.io/packages/helm/grafana/alloy`
+- **kube-prometheus-stack** (`prometheus-community/kube-prometheus-stack`): `https://artifacthub.io/packages/helm/prometheus-community/kube-prometheus-stack`
+
+## Install chart
+
+### From Helm repository
+
+Add the Helm repository:
+
+```bash
+helm repo add common-chart https://rishang.github.io/common-chart/charts
+helm repo update
+```
+
+Install or upgrade:
+
+```bash
+helm upgrade --install loki-stack common-chart/loki-stack --namespace monitoring --create-namespace
+```
+
+### From local path
+
+```bash
+helm upgrade --install loki-stack ./helm/loki-stack --namespace monitoring --create-namespace
+```
+
+### Getting Started
+
+```yaml
+# values.yaml
+loki:
+  singleBinary:
+    persistence:
+      enabled: true
+      size: 10Gi
+      storageClass: default
+
+kube-prometheus-stack:
+  grafana:
+    adminUser: admin
+    adminPassword: admin
+    persistence:
+      enabled: true              # no PVC, data resets on pod restart
+      storageClass: default
+      size: 1Gi
+
+```
+
+Install or upgrade the chart:
+
+```bash
+helm upgrade --install loki-stack common-chart/loki-stack --namespace monitoring --create-namespace --values values.yaml
+```
+
+## Upgrade Chart
+
+From repository:
+
+```bash
+helm upgrade loki-stack common-chart/loki-stack --namespace monitoring --values values.yaml
+```
+
+## Delete Chart
+
+```bash
+helm uninstall loki-stack --namespace monitoring
+```

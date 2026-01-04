@@ -1,0 +1,17 @@
+---
+title: Loki Stack Helm Chart
+sidebar_label: Introduction
+---
+
+This chart provides a batteries-included logging stack for Kubernetes:
+
+- **Loki** for log storage and querying
+- **[Grafana Alloy](https://artifacthub.io/packages/helm/grafana/alloy)** for cluster-wide log collection (Grafana’s replacement for deprecated [Promtail](https://artifacthub.io/packages/helm/grafana/promtail) and other collectors)
+- Optional **kube-prometheus-stack** for Grafana + Prometheus
+
+## Why?
+
+- **Upstream changes**: The legacy [loki-stack](https://artifacthub.io/packages/helm/grafana/loki-stack) approach and [Promtail](https://artifacthub.io/packages/helm/grafana/promtail) are deprecated upstream; this chart exists to keep an easy-to-install stack using **current Loki** with [Alloy](https://artifacthub.io/packages/helm/grafana/alloy).
+- **Cluster-wide container logs**: By default in this chart, Alloy is configured to collect **all Kubernetes container logs** from `/var/log/pods/*/*/*.log` across the cluster and forward them to Loki with useful labels (namespace/pod/container).
+
+
