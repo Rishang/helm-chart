@@ -1,6 +1,6 @@
 # Component Chart
 
-DOCS: https://rishang.github.io/common-chart/component-chart/introduction
+DOCS: https://rishang.github.io/helm-chart/component-chart/introduction
 
 Documentation is bundled with this chart under `docs/pages/`:
 

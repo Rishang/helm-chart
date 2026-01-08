@@ -6,17 +6,17 @@ const darkCodeTheme = prismThemes.dracula;
 
 /** @type {import('@docusaurus/types').Config} */
 const config = {
-  title: 'common-chart',
+  title: 'helm-chart',
   tagline: 'Helm chart documentation',
   favicon: 'img/favicon.ico',
 
   url: 'https://rishang.github.io',
-  baseUrl: '/common-chart/',
+  baseUrl: '/helm-chart/',
   onBrokenLinks: 'throw',
   onBrokenMarkdownLinks: 'warn',
 
   organizationName: 'rishang',
-  projectName: 'common-chart',
+  projectName: 'helm-chart',
 
   i18n: {
     defaultLocale: 'en',
@@ -74,7 +74,7 @@ const config = {
         respectPrefersColorScheme: false,
       },
       navbar: {
-        title: 'common-chart',
+        title: 'helm-chart',
         items: [
           {
             type: 'docSidebar',
@@ -91,13 +91,13 @@ const config = {
             label: 'loki-stack',
           },
           // {
-          //   href: 'https://github.com/Rishang/common-chart/stargazers',
+          //   href: 'https://github.com/Rishang/helm-chart/stargazers',
           //   position: 'right',
           //   className: 'header-github-star',
           //   'aria-label': 'Star on GitHub',
           // },
           {
-            href: 'https://github.com/Rishang/common-chart',
+            href: 'https://github.com/Rishang/helm-chart',
             position: 'right',
             className: 'header-github-link',
             'aria-label': 'GitHub repository',
@@ -113,7 +113,7 @@ const config = {
             items: [
               {
                 label: 'GitHub',
-                href: 'https://github.com/Rishang/common-chart',
+                href: 'https://github.com/Rishang/helm-chart',
               },
             ],
           },

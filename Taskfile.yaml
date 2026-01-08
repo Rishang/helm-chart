@@ -31,7 +31,7 @@ tasks:
     - echo "Packaging loki-stack..."
     - helm package charts/loki-stack -d web/static/charts/
     - echo "Updating Helm repository index..."
-    - helm repo index web/static/charts --url https://rishang.github.io/common-chart/charts
+    - helm repo index web/static/charts --url https://rishang.github.io/helm-chart/charts
     - echo "✅ Charts packaged successfully!"
     - echo "📦 Files created in web/static/charts/"
     - ls -lh web/static/charts/

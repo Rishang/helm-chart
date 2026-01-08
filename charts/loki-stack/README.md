@@ -149,6 +149,6 @@ This chart depends on:
 ## Support
 
 For issues and questions:
-- Chart Issues: [GitHub Issues](https://github.com/your-org/common-chart/issues)
+- Chart Issues: [GitHub Issues](https://github.com/your-org/helm-chart/issues)
 - Loki Documentation: https://grafana.com/docs/loki/
 - Alloy Documentation: https://grafana.com/docs/alloy/

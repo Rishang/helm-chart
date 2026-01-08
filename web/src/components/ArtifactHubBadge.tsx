@@ -3,13 +3,13 @@ import React from 'react';
 type ArtifactHubBadgeProps = {
   /** Chart/package name (e.g. "loki-stack") */
   name: string;
-  /** Artifact Hub repository/namespace (e.g. "common-charts"). */
+  /** Artifact Hub repository/namespace (e.g. "helm-charts"). */
   repo?: string;
 };
 
 export default function ArtifactHubBadge({
   name,
-  repo = 'common-charts',
+  repo = 'helm-charts',
 }: ArtifactHubBadgeProps) {
   const artifactHubPackageUrl = `https://artifacthub.io/packages/helm/${repo}/${name}`;
   // Repository-level Artifact Hub badge via Shields.io endpoint.

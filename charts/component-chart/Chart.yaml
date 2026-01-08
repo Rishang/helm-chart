@@ -1,5 +1,5 @@
 apiVersion: v2
 name: component-chart
-description: A general purpose helm chart for deploying components of an application. [DOCS - https://rishang.github.io/common-chart/component-chart/introduction]
+description: A general purpose helm chart for deploying components of an application. [DOCS - https://rishang.github.io/helm-chart/component-chart/introduction]
 
 version: 0.0.1
