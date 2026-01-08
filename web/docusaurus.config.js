@@ -43,7 +43,7 @@ const config = {
       {
         id: 'component-chart',
         // Use the chart docs directly, so chart + docs stay together
-        path: '../helm/component-chart/docs/pages',
+        path: '../charts/component-chart/docs/pages',
         routeBasePath: 'component-chart',
         sidebarPath: require.resolve('./sidebars/component-chart.js'),
         showLastUpdateAuthor: false,
@@ -56,7 +56,7 @@ const config = {
       {
         id: 'loki-stack',
         // Use the chart docs directly, so chart + docs stay together
-        path: '../helm/loki-stack/docs/pages',
+        path: '../charts/loki-stack/docs/pages',
         routeBasePath: 'loki-stack',
         sidebarPath: require.resolve('./sidebars/loki-stack.js'),
         showLastUpdateAuthor: false,
