@@ -144,9 +144,9 @@ helm template loki-stack . --namespace monitoring --values test/values.yaml > lo
 
 This chart depends on:
 
-- [Loki](https://github.com/grafana/loki) - v6.49.0
-- [Grafana Alloy](https://github.com/grafana/alloy) - v1.5.1
-- [kube-prometheus-stack](https://github.com/prometheus-community/helm-charts) - v80.5.0
+- [Loki](https://github.com/grafana/loki) 
+- [Grafana Alloy](https://github.com/grafana/alloy) 
+- [kube-prometheus-stack](https://github.com/prometheus-community/helm-charts)
 
 ## Support
 

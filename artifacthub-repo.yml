@@ -1,0 +1,19 @@
+# Artifact Hub repository metadata file
+# https://artifacthub.io/docs/topics/repositories/
+
+repositoryID: 3b4d4f9f-9b21-4205-a45d-d6a8811e2b39
+
+owners:
+  - name: Rishang
+    email: rishangbhavsarcs@gmail.com
+
+# Optional: Add links to your repository
+links:
+  - name: support
+    url: https://github.com/Rishang/helm-chart/issues
+  - name: source
+    url: https://github.com/Rishang/helm-chart
+
+# Optional: Add ignore patterns for packages you don't want to publish
+# ignore:
+#   - name: package-name-to-ignore
