@@ -1,6 +1,6 @@
 # Component Chart
 
-![GitHub Repo](https://img.shields.io/github/stars/Rishang/helm-chart)
+[![GitHub Repo](https://img.shields.io/github/stars/Rishang/helm-chart)](https://github.com/Rishang/helm-chart)
 
 DOCS: https://rishang.github.io/helm-chart/component-chart/introduction
 
