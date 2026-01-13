@@ -4,6 +4,8 @@
 
 Observability stack - Loki for logs, Grafana for visualization, Prometheus for metrics, and Grafana Alloy for log collection (alternative to deprecated Promtail).
 
+DOCS: https://rishang.github.io/helm-chart/loki-stack/introduction
+
 ## Overview
 
 This Helm chart deploys a complete observability stack on Kubernetes, providing:
