@@ -9,7 +9,7 @@ type ArtifactHubBadgeProps = {
 
 export default function ArtifactHubBadge({
   name,
-  repo = 'helm-charts',
+  repo = 'common-charts',
 }: ArtifactHubBadgeProps) {
   const artifactHubPackageUrl = `https://artifacthub.io/packages/helm/${repo}/${name}`;
   // Repository-level Artifact Hub badge via Shields.io endpoint.
