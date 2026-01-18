@@ -26,14 +26,14 @@ This Helm chart deploys a complete observability stack on Kubernetes, providing:
 ### Add the repository (if applicable)
 
 ```bash
-helm repo add <your-repo-name> <your-repo-url>
+helm repo add common-charts https://rishang.github.io/helm-chart/charts
 helm repo update
 ```
 
 ### Install the chart
 
 ```bash
-helm install loki-stack . --namespace monitoring --create-namespace
+helm install loki-stack common-charts/loki-stack --namespace monitoring --create-namespace
 ```
 
 ### Install with custom values
