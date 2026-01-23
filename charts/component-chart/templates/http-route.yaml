@@ -1,0 +1,40 @@
+{{- if .Values.httpRoutes }}
+{{- range $routeIndex, $route := .Values.httpRoutes }}
+---
+apiVersion: {{ $route.apiVersion | default "gateway.networking.k8s.io/v1" }}
+kind: HTTPRoute
+metadata:
+  name: {{ $route.name | default (printf "%s-httproute-%d" $.Release.Name $routeIndex) | quote }}
+  labels:
+    "app.kubernetes.io/name": {{ $.Release.Name | quote }}
+    "app.kubernetes.io/managed-by": {{ $.Release.Service | quote }}
+    {{- range $labelName, $labelValue := $route.labels }}
+    {{ $labelName | quote }}: {{ $labelValue | quote }}
+    {{- end }}
+  {{- if $route.annotations }}
+  annotations:
+    {{- range $annotationName, $annotationValue := $route.annotations }}
+    {{ $annotationName | quote }}: {{ $annotationValue | quote }}
+    {{- end }}
+  {{- end }}
+spec:
+  {{- if $route.spec }}
+  {{- toYaml $route.spec | nindent 2 }}
+  {{- else if or $route.parentRefs $route.hostnames $route.rules }}
+  {{- if $route.parentRefs }}
+  parentRefs:
+    {{- toYaml $route.parentRefs | nindent 2 }}
+  {{- end }}
+  {{- if $route.hostnames }}
+  hostnames:
+    {{- toYaml $route.hostnames | nindent 2 }}
+  {{- end }}
+  {{- if $route.rules }}
+  rules:
+    {{- toYaml $route.rules | nindent 2 }}
+  {{- end }}
+  {{- else }}
+  {}
+  {{- end }}
+{{- end }}
+{{- end }}
