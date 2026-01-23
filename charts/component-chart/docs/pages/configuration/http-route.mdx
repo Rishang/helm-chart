@@ -16,8 +16,7 @@ Create one or more HTTPRoute resources from `httpRoutes` section in the values.y
 #### Example: Minimal HTTPRoute using `spec`
 ```yaml
 httpRoutes:
-  - name: web-route
-    spec:
+  - spec:
       parentRefs:
         - name: public-gateway # gateway api object name
       hostnames:
@@ -35,8 +34,7 @@ httpRoutes:
 #### Example: Using a request header filter
 ```yaml
 httpRoutes:
-  - name: api-route
-    spec:
+  - spec:
       parentRefs:
         - name: internal-gateway
       hostnames:
@@ -60,7 +58,7 @@ httpRoutes:
 #### Example: Multiple routes
 ```yaml
 httpRoutes:
-  - name: public-route
+  - name: public-route # optional name defaulted to {component-name}-httproute-{index}
     spec:
       parentRefs:
         - name: public-gateway
@@ -74,7 +72,7 @@ httpRoutes:
           backendRefs:
             - name: frontend
               port: 80
-  - name: internal-route
+  - name: internal-route # optional name defaulted to {component-name}-httproute-{index}
     spec:
       parentRefs:
         - name: internal-gateway
