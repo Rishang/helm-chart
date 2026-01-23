@@ -51,7 +51,7 @@ configmap: {}
 # Secret for the component
 secrets: {}
 
-# HTTP routes for the component
+# HTTP routes for the gateway API ingress of the component
 httpRoutes: []
   # - name: my-http-route
   #   apiVersion: gateway.networking.k8s.io/v1

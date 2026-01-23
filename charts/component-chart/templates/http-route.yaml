@@ -23,15 +23,15 @@ spec:
   {{- else if or $route.parentRefs $route.hostnames $route.rules }}
   {{- if $route.parentRefs }}
   parentRefs:
-    {{- toYaml $route.parentRefs | nindent 2 }}
+    {{- toYaml $route.parentRefs | nindent 4 }}
   {{- end }}
   {{- if $route.hostnames }}
   hostnames:
-    {{- toYaml $route.hostnames | nindent 2 }}
+    {{- toYaml $route.hostnames | nindent 4 }}
   {{- end }}
   {{- if $route.rules }}
   rules:
-    {{- toYaml $route.rules | nindent 2 }}
+    {{- toYaml $route.rules | nindent 4 }}
   {{- end }}
   {{- else }}
   {}

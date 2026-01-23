@@ -1,0 +1,91 @@
+---
+title: HTTPRoute (Gateway API)
+sidebar_label: httpRoutes
+---
+
+import ArtifactHubBadge from '@site/src/components/ArtifactHubBadge';
+
+<ArtifactHubBadge name="component-chart" />
+
+## HTTPRoute (Gateway API)
+
+[HTTPRoute](https://gateway-api.sigs.k8s.io/api-types/httproute/) is a resource in the Kubernetes Gateway API that allows you to define routes for HTTP traffic to be routed to a service.
+
+Create one or more HTTPRoute resources from `httpRoutes` section in the values.yaml file. Rendered by: `templates/http-route.yaml`
+
+#### Example: Minimal HTTPRoute using `spec`
+```yaml
+httpRoutes:
+  - name: web-route
+    spec:
+      parentRefs:
+        - name: public-gateway # gateway api object name
+      hostnames:
+        - example.com # hostnames to route to
+      rules:
+        - matches:
+            - path:
+                type: PathPrefix
+                value: /
+          backendRefs:
+            - name: web # service name to route to
+              port: 80
+```
+
+#### Example: Using a request header filter
+```yaml
+httpRoutes:
+  - name: api-route
+    spec:
+      parentRefs:
+        - name: internal-gateway
+      hostnames:
+        - api.example.com
+      rules:
+        - matches:
+            - path:
+                type: PathPrefix
+                value: /v1
+          filters:
+            - type: RequestHeaderModifier
+              requestHeaderModifier:
+                add:
+                  - name: x-tenant
+                    value: acme
+          backendRefs:
+            - name: api
+              port: 8080
+```
+
+#### Example: Multiple routes
+```yaml
+httpRoutes:
+  - name: public-route
+    spec:
+      parentRefs:
+        - name: public-gateway
+      hostnames:
+        - www.example.com
+      rules:
+        - matches:
+            - path:
+                type: PathPrefix
+                value: /
+          backendRefs:
+            - name: frontend
+              port: 80
+  - name: internal-route
+    spec:
+      parentRefs:
+        - name: internal-gateway
+      hostnames:
+        - internal.example.com
+      rules:
+        - matches:
+            - path:
+                type: PathPrefix
+                value: /
+          backendRefs:
+            - name: backend
+              port: 8080
+```
