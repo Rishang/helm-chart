@@ -1,11 +1,17 @@
 # A list of containers that should run the pods of this component
 containers: []
+
+# Defines a rolling update strategy for the component
 rollingUpdate:
   enabled: true
 
+# Defines a list of init containers for the component
 initContainers: []
 
+# Defines a number of replicas for the component
+replicas: 1
 
+# Defines a service for the component
 service:
   type: ClusterIP
   labels: {}
@@ -13,9 +19,13 @@ service:
   ports: []
   externalIPs: []
 
+# Labels for the component
 labels: {}
+
+# Annotations for the component
 annotations: {}
 
+# Ingress for the component
 ingress:
   disabled: false
   labels: {}
@@ -23,7 +33,7 @@ ingress:
   certmanager: true
   rules: []
 
-# Define persistent volumes here
+# Persistent volumes for the component
 # Then mount them in containers above
 volumes: []
 
@@ -32,11 +42,37 @@ volumes: []
 # More infos on: https://devspace.cloud/docs/cli/image-building/workflow-basics#8-create-image-pull-secret
 pullSecrets: []
 
+# Service account for the component
 serviceaccount: {}
 
+# Config map for the component
 configmap: {}
+
+# Secret for the component
 secrets: {}
 
+# HTTP routes for the gateway API ingress of the component
+httpRoutes: []
+  # - name: my-http-route
+  #   apiVersion: gateway.networking.k8s.io/v1
+  #   labels: {}
+  #   annotations: {}
+  #   spec:
+  #     parentRefs:
+  #       - name: my-gateway
+  #     hostnames:
+  #       - example.com
+  #     rules:
+  #       - matches:
+  #           - path:
+  #               type: PathPrefix
+  #               value: /
+  #         backendRefs:
+  #           - name: my-service
+  #             port: 80
+
+
+# External secrets for the component
 externalSecrets: []
   # - name: my-external-secret
   #   annotations: {}
@@ -52,4 +88,5 @@ externalSecrets: []
   #       remoteRef:
   #         key: /path/to/parameter
 
+# Extra objects for the component
 extraObjects: []
