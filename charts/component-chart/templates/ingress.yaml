@@ -1,4 +1,4 @@
-{{- if not $.Values.ingress.disabled}} #
+{{- if not $.Values.ingress.disabled}}
 {{- range $rulesIndex, $ingressRule := $.Values.ingress.rules }}
 {{- if eq $rulesIndex 0 }}
 {{- $tlsSecretName := "" }}
