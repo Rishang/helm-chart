@@ -36,6 +36,10 @@ containers:
       initialDelaySeconds: 30
       timeoutSeconds: 5
       failureThreshold: 3
+
+# job:
+#   schedule: "*/5 * * * *"
+
 service:
   ports:
     - port: 80

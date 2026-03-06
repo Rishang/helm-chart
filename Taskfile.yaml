@@ -16,8 +16,13 @@ tasks:
     desc: Validate Helm charts
     cmds:
     - |
+      NAME={{.CLI_ARGS}}
+
       for chart in charts/*; do 
         chart_name=$(basename "$chart")
+        if [ "$chart_name" != "$NAME" ]; then
+          continue
+        fi
         (
           cd "$chart" || exit 1
           echo "Validating $chart_name..."
