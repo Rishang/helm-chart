@@ -11,6 +11,20 @@ initContainers: []
 # Defines a number of replicas for the component
 replicas: 1
 
+# Job or CronJob specific configuration
+job: {}
+  # A schedule for a CronJob. If set, this component will be a CronJob instead of a Deployment else it will be a Job.
+  # "*/5 * * * *"
+  # schedule: ''
+  # backoffLimit: 4
+  # activeDeadlineSeconds: 100
+  # ttlSecondsAfterFinished: 100
+  # concurrencyPolicy: Allow
+  # failedJobsHistoryLimit: 1
+  # successfulJobsHistoryLimit: 3
+  # startingDeadlineSeconds: 100
+  # suspend: false
+
 # Defines a service for the component
 service:
   type: ClusterIP
@@ -70,7 +84,6 @@ httpRoutes: []
   #         backendRefs:
   #           - name: my-service
   #             port: 80
-
 
 # External secrets for the component
 externalSecrets: []
