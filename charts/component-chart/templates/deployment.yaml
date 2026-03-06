@@ -43,7 +43,7 @@
   {{- $allContainers = append $allContainers $initContainer }}
 {{- end }}
 
-apiVersion: {{ if eq $kind "CronJob" }}batch/v1{{ else if eq $kind "Job" }}batch/v1{{ else }}apps/v1{{ end }}
+apiVersion: {{ if has $kind (list "CronJob" "Job") }}batch/v1{{ else }}apps/v1{{ end }}
 kind: {{ $kind }}
 metadata:
   name: {{ $.Release.Name | quote }}
