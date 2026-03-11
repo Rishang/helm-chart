@@ -20,7 +20,7 @@ tasks:
 
       for chart in charts/*; do 
         chart_name=$(basename "$chart")
-        if [ "$chart_name" != "$NAME" ]; then
+        if [ -n "$NAME" ] && [ "$chart_name" != "$NAME" ]; then
           continue
         fi
         (
@@ -36,6 +36,36 @@ tasks:
           fi
           
           helm lint . && helm template . > /dev/null && echo "✅ $chart_name validated successfully"
+        ) || exit 1
+      done
+
+  helm-unittest:
+    desc: Run Helm unit tests (helm-unittest plugin)
+    cmds:
+    - |
+      NAME={{.CLI_ARGS}}
+
+      if ! helm unittest -h >/dev/null 2>&1; then
+        echo "❌ helm-unittest plugin is not installed."
+        echo "Install: helm plugin install https://github.com/helm-unittest/helm-unittest"
+        exit 1
+      fi
+
+      for chart in charts/*; do
+        chart_name=$(basename "$chart")
+        if [ -n "$NAME" ] && [ "$chart_name" != "$NAME" ]; then
+          continue
+        fi
+
+        if [ ! -d "$chart/tests" ] || [ -z "$(ls -A "$chart/tests" 2>/dev/null)" ]; then
+          echo "⏭️  Skipping $chart_name (no unit tests)"
+          continue
+        fi
+
+        (
+          cd "$chart" || exit 1
+          echo "Running unit tests for $chart_name..."
+          helm unittest .
         ) || exit 1
       done
 
@@ -64,4 +94,3 @@ tasks:
     - echo "✅ Charts packaged successfully!"
     - echo "📦 Files created in web/static/charts/"
     - ls -lh web/static/charts/
-

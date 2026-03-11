@@ -1,0 +1,4 @@
+configmap:
+  data:
+    KEY: value
+

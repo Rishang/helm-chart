@@ -1,0 +1,40 @@
+labels:
+  azure.workload.identity/use: "true"
+
+containers:
+  - name: demo
+    image: nginx
+    imageTag: latest
+    imagePullPolicy: Always
+    envFrom:
+      - secretRef:
+          name: demo
+      - configMapRef:
+          name: demo
+    env:
+      - name: NAME
+        value: demo
+    resources:
+      limits:
+        cpu: 10m
+        memory: 64Mi
+      requests:
+        cpu: 1m
+        memory: 10Mi
+    readinessProbe:
+      httpGet:
+        path: /
+        port: 80
+      periodSeconds: 30
+      initialDelaySeconds: 30
+      timeoutSeconds: 5
+      failureThreshold: 3
+    livenessProbe:
+      httpGet:
+        path: /
+        port: 80
+      periodSeconds: 30
+      initialDelaySeconds: 30
+      timeoutSeconds: 5
+      failureThreshold: 3
+

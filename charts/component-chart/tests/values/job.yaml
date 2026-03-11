@@ -1,0 +1,7 @@
+containers:
+  - name: worker
+    image: busybox
+    imageTag: "1.36"
+job:
+  backoffLimit: 2
+

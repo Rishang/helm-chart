@@ -1,0 +1,29 @@
+suite: component-chart / job
+release:
+  name: demo
+  namespace: default
+values:
+  - values/job.yaml
+templates:
+  - templates/job.yaml
+tests:
+  - it: renders a Job when job is set without schedule
+    asserts:
+      - isKind:
+          of: Job
+      - equal:
+          path: metadata.name
+          value: demo
+      - equal:
+          path: spec.backoffLimit
+          value: 2
+      - equal:
+          path: spec.template.spec.restartPolicy
+          value: OnFailure
+      - equal:
+          path: spec.template.spec.containers[0].name
+          value: worker
+      - equal:
+          path: spec.template.spec.containers[0].image
+          value: busybox:1.36
+

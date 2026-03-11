@@ -1,0 +1,61 @@
+suite: component-chart / deployment
+release:
+  name: demo
+  namespace: default
+values:
+  - values/deployment.yaml
+templates:
+  - templates/deployment.yaml
+tests:
+  - it: renders a Deployment with expected labels and container spec
+    asserts:
+      - isKind:
+          of: Deployment
+      - equal:
+          path: metadata.name
+          value: demo
+      - equal:
+          path: metadata.labels["azure.workload.identity/use"]
+          value: "true"
+      - equal:
+          path: spec.replicas
+          value: 1
+      - equal:
+          path: spec.strategy.type
+          value: RollingUpdate
+      - equal:
+          path: spec.strategy.rollingUpdate.maxSurge
+          value: 25%
+      - equal:
+          path: spec.strategy.rollingUpdate.maxUnavailable
+          value: 0%
+      - equal:
+          path: spec.selector.matchLabels["app.kubernetes.io/component"]
+          value: demo
+      - equal:
+          path: spec.template.spec.containers[0].name
+          value: demo
+      - equal:
+          path: spec.template.spec.containers[0].image
+          value: nginx:latest
+      - equal:
+          path: spec.template.spec.containers[0].imagePullPolicy
+          value: Always
+      - equal:
+          path: spec.template.spec.containers[0].envFrom[0].secretRef.name
+          value: demo
+      - equal:
+          path: spec.template.spec.containers[0].envFrom[1].configMapRef.name
+          value: demo
+      - equal:
+          path: spec.template.spec.containers[0].env[0].name
+          value: NAME
+      - equal:
+          path: spec.template.spec.containers[0].env[0].value
+          value: demo
+      - equal:
+          path: spec.template.spec.containers[0].readinessProbe.httpGet.path
+          value: /
+      - equal:
+          path: spec.template.spec.containers[0].readinessProbe.httpGet.port
+          value: 80
