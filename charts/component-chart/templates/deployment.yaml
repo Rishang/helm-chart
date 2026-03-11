@@ -1,33 +1,24 @@
 {{- range $containerIndex, $containerUnused := $.Values.containers }}
 {{- if eq $containerIndex 0 }}
+{{- if not $.Values.job }}
 
 {{/*
   ─── Determine resource kind ───────────────────────────────────────────────
   Priority:
-    1. CronJob  – $.Values.job is set AND job.schedule is non-empty
-    2. Job      – $.Values.job is set (no schedule)
-    3. StatefulSet – any container has a non-readOnly volumeMount backed by a
+    1. StatefulSet – any container has a non-readOnly volumeMount backed by a
                      PVC (i.e. not secret / configMap / emptyDir / hostPath)
-    4. Deployment  – everything else
+    2. Deployment  – everything else
 */}}
 
 {{- $kind := "Deployment" }}
 
-{{- if $.Values.job }}
-  {{- if $.Values.job.schedule }}
-    {{- $kind = "CronJob" }}
-  {{- else }}
-    {{- $kind = "Job" }}
-  {{- end }}
-{{- else }}
-  {{- range $containerIndex, $container := $.Values.containers }}
-    {{- range $volumeMountIndex, $volumeMount := $container.volumeMounts }}
-      {{- if not $volumeMount.volume.readOnly }}
-        {{- range $volumeIndex, $volume := $.Values.volumes }}
-          {{- if not (or (hasKey $volume "secret") (hasKey $volume "configMap") (hasKey $volume "emptyDir") (hasKey $volume "hostPath")) }}
-            {{- if eq $volumeMount.volume.name $volume.name }}
-              {{- $kind = "StatefulSet" }}
-            {{- end }}
+{{- range $containerIndex, $container := $.Values.containers }}
+  {{- range $volumeMountIndex, $volumeMount := $container.volumeMounts }}
+    {{- if not $volumeMount.volume.readOnly }}
+      {{- range $volumeIndex, $volume := $.Values.volumes }}
+        {{- if not (or (hasKey $volume "secret") (hasKey $volume "configMap") (hasKey $volume "emptyDir") (hasKey $volume "hostPath")) }}
+          {{- if eq $volumeMount.volume.name $volume.name }}
+            {{- $kind = "StatefulSet" }}
           {{- end }}
         {{- end }}
       {{- end }}
@@ -43,7 +34,7 @@
   {{- $allContainers = append $allContainers $initContainer }}
 {{- end }}
 
-apiVersion: {{ if has $kind (list "CronJob" "Job") }}batch/v1{{ else }}apps/v1{{ end }}
+apiVersion: apps/v1
 kind: {{ $kind }}
 metadata:
   name: {{ $.Release.Name | quote }}
@@ -60,73 +51,6 @@ metadata:
     {{ $annotationName | quote }}: {{ $annotationValue | quote }}
     {{- end }}
 spec:
-  {{/*
-    ── CronJob spec ──────────────────────────────────────────────────────────
-  */}}
-  {{- if eq $kind "CronJob" }}
-  schedule: {{ $.Values.job.schedule | quote }}
-  {{- if $.Values.job.concurrencyPolicy }}
-  concurrencyPolicy: {{ $.Values.job.concurrencyPolicy }}
-  {{- end }}
-  {{- if hasKey $.Values.job "suspend" }}
-  suspend: {{ $.Values.job.suspend }}
-  {{- end }}
-  {{- if hasKey $.Values.job "startingDeadlineSeconds" }}
-  startingDeadlineSeconds: {{ $.Values.job.startingDeadlineSeconds }}
-  {{- end }}
-  {{- if hasKey $.Values.job "failedJobsHistoryLimit" }}
-  failedJobsHistoryLimit: {{ $.Values.job.failedJobsHistoryLimit }}
-  {{- end }}
-  {{- if hasKey $.Values.job "successfulJobsHistoryLimit" }}
-  successfulJobsHistoryLimit: {{ $.Values.job.successfulJobsHistoryLimit }}
-  {{- end }}
-  jobTemplate:
-    metadata:
-      labels:
-        "app.kubernetes.io/name": "devspace-app"
-        "app.kubernetes.io/component": {{ $.Release.Name | quote }}
-        "app.kubernetes.io/managed-by": {{ $.Release.Service | quote }}
-        {{- range $labelName, $labelValue := $.Values.labels }}
-        {{ $labelName | quote }}: {{ $labelValue | quote }}
-        {{- end }}
-      annotations:
-        "helm.sh/chart": "{{ $.Chart.Name }}-{{ $.Chart.Version }}"
-        {{- range $annotationName, $annotationValue := $.Values.annotations }}
-        {{ $annotationName | quote }}: {{ $annotationValue | quote }}
-        {{- end }}
-    spec:
-      {{- if hasKey $.Values.job "backoffLimit" }}
-      backoffLimit: {{ $.Values.job.backoffLimit }}
-      {{- end }}
-      {{- if hasKey $.Values.job "activeDeadlineSeconds" }}
-      activeDeadlineSeconds: {{ $.Values.job.activeDeadlineSeconds }}
-      {{- end }}
-      {{- if hasKey $.Values.job "ttlSecondsAfterFinished" }}
-      ttlSecondsAfterFinished: {{ $.Values.job.ttlSecondsAfterFinished }}
-      {{- end }}
-      template:
-{{ include "component.podTemplate" $ | indent 8 }}
-  {{- end }}{{/* end CronJob */}}
-  {{/*
-    ── Job spec ──────────────────────────────────────────────────────────────
-  */}}
-  {{- if eq $kind "Job" }}
-  {{- if hasKey $.Values.job "backoffLimit" }}
-  backoffLimit: {{ $.Values.job.backoffLimit }}
-  {{- end }}
-  {{- if hasKey $.Values.job "activeDeadlineSeconds" }}
-  activeDeadlineSeconds: {{ $.Values.job.activeDeadlineSeconds }}
-  {{- end }}
-  {{- if hasKey $.Values.job "ttlSecondsAfterFinished" }}
-  ttlSecondsAfterFinished: {{ $.Values.job.ttlSecondsAfterFinished }}
-  {{- end }}
-  template:
-{{ include "component.podTemplate" $ | indent 4 }}
-  {{- end }}{{/* end Job */}}
-  {{/*
-    ── Deployment / StatefulSet spec ─────────────────────────────────────────
-  */}}
-  {{- if or (eq $kind "Deployment") (eq $kind "StatefulSet") }}
   {{- if not $.Values.autoScaling }}
   replicas: {{ $.Values.replicas | default 1 }}
   {{- end }}
@@ -222,7 +146,6 @@ spec:
     {{- end }}
     {{- end }}
   {{- end }}{{/* end StatefulSet volumeClaimTemplates */}}
-  {{- end }}{{/* end Deployment / StatefulSet */}}
 
 ---
 
@@ -263,5 +186,6 @@ spec:
 ---
 {{- end }}{{/* end headless Service */}}
 
+{{- end }}{{/* end if not job */}}
 {{- end }}{{/* end if containerIndex == 0 */}}
 {{- end }}{{/* end range containers */}}
