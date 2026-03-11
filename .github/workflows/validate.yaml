@@ -15,6 +15,10 @@ jobs:
         with:
           version: 3.x
           repo-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Setup Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: v3.19.0
       - name: Validate Helm charts
         run: task helm-validate
       - name: Install helm-unittest plugin
