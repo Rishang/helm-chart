@@ -3,7 +3,7 @@ release:
   name: demo
   namespace: default
 values:
-  - test/values.yaml
+  - values/deployment.yaml
 templates:
   - templates/deployment.yaml
 tests:
@@ -15,7 +15,7 @@ tests:
           path: metadata.name
           value: demo
       - equal:
-          path: metadata.labels."azure.workload.identity/use"
+          path: metadata.labels["azure.workload.identity/use"]
           value: "true"
       - equal:
           path: spec.replicas
@@ -30,7 +30,7 @@ tests:
           path: spec.strategy.rollingUpdate.maxUnavailable
           value: 0%
       - equal:
-          path: spec.selector.matchLabels."app.kubernetes.io/component"
+          path: spec.selector.matchLabels["app.kubernetes.io/component"]
           value: demo
       - equal:
           path: spec.template.spec.containers[0].name
@@ -59,4 +59,3 @@ tests:
       - equal:
           path: spec.template.spec.containers[0].readinessProbe.httpGet.port
           value: 80
-

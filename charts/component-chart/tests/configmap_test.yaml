@@ -3,7 +3,7 @@ release:
   name: demo
   namespace: default
 values:
-  - test/values.yaml
+  - values/configmap.yaml
 templates:
   - templates/config-map.yaml
 tests:
@@ -17,4 +17,3 @@ tests:
       - equal:
           path: data.KEY
           value: value
-

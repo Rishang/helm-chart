@@ -1,0 +1,26 @@
+suite: component-chart / cronjob
+release:
+  name: demo
+  namespace: default
+values:
+  - values/cronjob.yaml
+templates:
+  - templates/job.yaml
+tests:
+  - it: renders a CronJob when job.schedule is set
+    asserts:
+      - isKind:
+          of: CronJob
+      - equal:
+          path: metadata.name
+          value: demo
+      - equal:
+          path: spec.schedule
+          value: "*/5 * * * *"
+      - equal:
+          path: spec.jobTemplate.spec.backoffLimit
+          value: 2
+      - equal:
+          path: spec.jobTemplate.spec.template.spec.restartPolicy
+          value: OnFailure
+

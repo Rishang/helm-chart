@@ -3,7 +3,7 @@ release:
   name: demo
   namespace: default
 values:
-  - test/values.yaml
+  - values/service.yaml
 templates:
   - templates/service.yaml
 tests:
@@ -24,9 +24,8 @@ tests:
           path: spec.ports[0].targetPort
           value: 80
       - equal:
-          path: spec.selector."app.kubernetes.io/name"
+          path: spec.selector["app.kubernetes.io/name"]
           value: devspace-app
       - equal:
-          path: spec.selector."app.kubernetes.io/component"
+          path: spec.selector["app.kubernetes.io/component"]
           value: demo
-
