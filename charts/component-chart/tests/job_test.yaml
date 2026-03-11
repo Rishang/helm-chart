@@ -1,0 +1,55 @@
+suite: component-chart / job
+release:
+  name: demo
+  namespace: default
+templates:
+  - templates/job.yaml
+tests:
+  - it: renders a Job when job is set without schedule
+    set:
+      containers[0].name: worker
+      containers[0].image: busybox
+      containers[0].imageTag: "1.36"
+      job.backoffLimit: 2
+    asserts:
+      - isKind:
+          of: Job
+      - equal:
+          path: metadata.name
+          value: demo
+      - equal:
+          path: spec.backoffLimit
+          value: 2
+      - equal:
+          path: spec.template.spec.restartPolicy
+          value: OnFailure
+      - equal:
+          path: spec.template.spec.containers[0].name
+          value: worker
+      - equal:
+          path: spec.template.spec.containers[0].image
+          value: busybox:1.36
+
+  - it: renders a CronJob when job.schedule is set
+    set:
+      containers[0].name: worker
+      containers[0].image: busybox
+      containers[0].imageTag: "1.36"
+      job.backoffLimit: 2
+      job.schedule: "*/5 * * * *"
+    asserts:
+      - isKind:
+          of: CronJob
+      - equal:
+          path: metadata.name
+          value: demo
+      - equal:
+          path: spec.schedule
+          value: "*/5 * * * *"
+      - equal:
+          path: spec.jobTemplate.spec.backoffLimit
+          value: 2
+      - equal:
+          path: spec.jobTemplate.spec.template.spec.restartPolicy
+          value: OnFailure
+

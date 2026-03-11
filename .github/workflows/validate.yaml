@@ -17,3 +17,10 @@ jobs:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
       - name: Validate Helm charts
         run: task helm-validate
+      - name: Install helm-unittest plugin
+        run: |
+          if ! helm plugin list | awk '{print $1}' | grep -qx unittest; then
+            helm plugin install https://github.com/helm-unittest/helm-unittest
+          fi
+      - name: Run chart unit tests
+        run: task helm-unittest
