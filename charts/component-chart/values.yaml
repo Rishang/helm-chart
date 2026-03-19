@@ -86,20 +86,28 @@ httpRoutes: []
   #             port: 80
 
 # External secrets for the component
-externalSecrets: []
-  # - name: my-external-secret
+externalSecrets: {}
+  # secretstore:                     # Optional SecretStore resource to create
+  #   # ref: https://external-secrets.io/latest/api/secretstore/
+  #   name: my-secret-store          # Default: release name
+  #   labels: {}
   #   annotations: {}
-  #   refreshInterval: "0s"  # Set to "0s" to disable auto-refresh, or "1h", "5m", etc.
-  #   secretStoreRef:
-  #     name: my-secret-store
-  #     kind: SecretStore
-  #   target:
-  #     name: my-external-secret
-  #     creationPolicy: Owner
-  #   data:
-  #     - secretKey: MY_SECRET_KEY
-  #       remoteRef:
-  #         key: /path/to/parameter
+  #   provider: {}                   # Required when secretstore is set
+  # secrets:                         # List of ExternalSecret resources
+  #   # ref: https://external-secrets.io/latest/api/externalsecret/
+  #   - name: my-external-secret
+  #     annotations: {}
+  #     refreshInterval: "0s"        # Set to "0s" to disable auto-refresh, or "1h", "5m", etc.
+  #     secretStoreRef:
+  #       name: my-secret-store      # Default order: secretStoreRef.name -> externalSecrets.secretstore.name -> release name
+  #       kind: SecretStore          # Default: SecretStore
+  #     target:
+  #       name: my-external-secret
+  #       creationPolicy: Owner
+  #     data:
+  #       - secretKey: MY_SECRET_KEY
+  #         remoteRef:
+  #           key: /path/to/parameter
 
-# Extra objects for the component
+# List of any extra Kubernetes manifests (CRDs) needed for the component
 extraObjects: []
