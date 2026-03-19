@@ -97,7 +97,7 @@ externalSecrets: {}
   #   # ref: https://external-secrets.io/latest/api/externalsecret/
   #   - name: my-external-secret
   #     annotations: {}
-  #     refreshInterval: "0s"        # Set to "0s" to disable auto-refresh, or "1h", "5m", etc.
+  #     refreshInterval: "0s"        # Default: "0s" to disable auto-refresh, or "1h", "5m", etc.
   #     secretStoreRef:
   #       name: my-secret-store      # Default order: secretStoreRef.name -> externalSecrets.secretstore.name -> release name
   #       kind: SecretStore          # Default: SecretStore
