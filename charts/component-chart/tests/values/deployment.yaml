@@ -1,5 +1,6 @@
 labels:
-  azure.workload.identity/use: 'true'
+  azure.workload.identity/use: "true"
+
 containers:
   - name: demo
     image: nginx
@@ -7,9 +8,9 @@ containers:
     imagePullPolicy: Always
     envFrom:
       - secretRef:
-          name: demo # same as release name
+          name: demo
       - configMapRef:
-          name: demo # same as release name
+          name: demo
     env:
       - name: NAME
         value: demo
@@ -37,20 +38,3 @@ containers:
       timeoutSeconds: 5
       failureThreshold: 3
 
-# job:
-#   schedule: "*/5 * * * *"
-
-service:
-  ports:
-    - port: 80
-secrets:
-  annotations:
-    avp.kubernetes.io/path: app
-    argocd.argoproj.io/sync-options: Replace=true
-  stringData:
-    SECRET: <demo-secret>
-configmap:
-  data:
-    KEY: value
-serviceaccount:
-  name: storage-reader

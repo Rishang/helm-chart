@@ -1,0 +1,48 @@
+---
+title: Job & CronJob Configuration
+---
+
+The `component-chart` fully supports setting up background tasks using Kubernetes `Job` or `CronJob` resources instead of the standard `Deployment`.
+
+It automatically evaluates the API `kind` based on the specified values. Providing a `job` object or a `job.schedule` string signals the chart to generate `Job` or `CronJob` resources, respectively.
+
+## Deploying a Job
+
+To deploy a one-off `Job`, you can define `job` settings. Any specific configurations under `job` will transform the component into a `Job`.
+
+```yaml
+job:
+  backoffLimit: 4
+  activeDeadlineSeconds: 100
+  ttlSecondsAfterFinished: 100
+```
+
+## Deploying a CronJob
+
+To deploy a periodic `CronJob`, define the `schedule` string. The component chart will dynamically wrap the pod template into a `jobTemplate`. 
+
+```yaml
+job:
+  schedule: "*/5 * * * *"
+  concurrencyPolicy: Allow
+  failedJobsHistoryLimit: 1
+  successfulJobsHistoryLimit: 3
+  startingDeadlineSeconds: 100
+  suspend: false
+  # You can also apply Job parameters to the instantiated jobs
+  backoffLimit: 4
+```
+
+### Configuration Options
+
+The `job` configuration block accepts fields mapped to the Kubernetes `JobSpec` and `CronJobSpec` specifications:
+
+- **`job.schedule`**: (String) The cron schedule (e.g., `* * * * *`). **Triggers CronJob mode.**
+- **`job.backoffLimit`**: (Int) Specifies the number of retries before marking a job as failed.
+- **`job.activeDeadlineSeconds`**: (Int) Specifies the duration in seconds relative to the startTime that the job may be continuously active before the system tries to terminate it.
+- **`job.ttlSecondsAfterFinished`**: (Int) TTL mechanism to clean up finished jobs.
+- **`job.concurrencyPolicy`**: (String) Specifies how to treat concurrent executions of a Job created by a CronJob. (`Allow`, `Forbid`, `Replace`)
+- **`job.failedJobsHistoryLimit`**: (Int) The number of failed finished jobs to retain.
+- **`job.successfulJobsHistoryLimit`**: (Int) The number of successful finished jobs to retain.
+- **`job.startingDeadlineSeconds`**: (Int) Optional deadline in seconds for starting the job if it misses scheduled time for any reason.
+- **`job.suspend`**: (Bool) This flag tells the controller to suspend subsequent executions.

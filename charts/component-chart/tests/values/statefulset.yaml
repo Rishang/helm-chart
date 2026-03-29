@@ -1,0 +1,14 @@
+containers:
+  - name: app
+    image: nginx
+    imageTag: "1.27"
+    volumeMounts:
+      - containerPath: /data
+        volume:
+          name: data
+          readOnly: false
+
+volumes:
+  - name: data
+    size: 1Gi
+

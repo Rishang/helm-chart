@@ -11,6 +11,20 @@ initContainers: []
 # Defines a number of replicas for the component
 replicas: 1
 
+# Job or CronJob specific configuration
+job: {}
+  # A schedule for a CronJob. If set, this component will be a CronJob instead of a Deployment else it will be a Job.
+  # "*/5 * * * *"
+  # schedule: ''
+  # backoffLimit: 4
+  # activeDeadlineSeconds: 100
+  # ttlSecondsAfterFinished: 100
+  # concurrencyPolicy: Allow
+  # failedJobsHistoryLimit: 1
+  # successfulJobsHistoryLimit: 3
+  # startingDeadlineSeconds: 100
+  # suspend: false
+
 # Defines a service for the component
 service:
   type: ClusterIP
@@ -71,22 +85,29 @@ httpRoutes: []
   #           - name: my-service
   #             port: 80
 
-
 # External secrets for the component
-externalSecrets: []
-  # - name: my-external-secret
+externalSecrets: {}
+  # secretstore:                     # Optional SecretStore resource to create
+  #   # ref: https://external-secrets.io/latest/api/secretstore/
+  #   name: my-secret-store          # Default: release name
+  #   labels: {}
   #   annotations: {}
-  #   refreshInterval: "0s"  # Set to "0s" to disable auto-refresh, or "1h", "5m", etc.
-  #   secretStoreRef:
-  #     name: my-secret-store
-  #     kind: SecretStore
-  #   target:
-  #     name: my-external-secret
-  #     creationPolicy: Owner
-  #   data:
-  #     - secretKey: MY_SECRET_KEY
-  #       remoteRef:
-  #         key: /path/to/parameter
+  #   provider: {}                   # Required when secretstore is set
+  # secrets:                         # List of ExternalSecret resources
+  #   # ref: https://external-secrets.io/latest/api/externalsecret/
+  #   - name: my-external-secret
+  #     annotations: {}
+  #     refreshInterval: "0s"        # Default: "0s" to disable auto-refresh, or "1h", "5m", etc.
+  #     secretStoreRef:
+  #       name: my-secret-store      # Default order: secretStoreRef.name -> externalSecrets.secretstore.name -> release name
+  #       kind: SecretStore          # Default: SecretStore
+  #     target:
+  #       name: my-external-secret
+  #       creationPolicy: Owner
+  #     data:
+  #       - secretKey: MY_SECRET_KEY
+  #         remoteRef:
+  #           key: /path/to/parameter
 
-# Extra objects for the component
+# List of any extra Kubernetes manifests (CRDs) needed for the component
 extraObjects: []

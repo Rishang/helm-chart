@@ -1,0 +1,19 @@
+suite: component-chart / configmap
+release:
+  name: demo
+  namespace: default
+values:
+  - values/configmap.yaml
+templates:
+  - templates/config-map.yaml
+tests:
+  - it: renders a ConfigMap with data
+    asserts:
+      - isKind:
+          of: ConfigMap
+      - equal:
+          path: metadata.name
+          value: demo
+      - equal:
+          path: data.KEY
+          value: value

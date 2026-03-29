@@ -1,0 +1,100 @@
+{{- if $.Values.job }}
+{{- range $containerIndex, $containerUnused := $.Values.containers }}
+{{- if eq $containerIndex 0 }}
+
+{{/*
+  ─── Determine resource kind ───────────────────────────────────────────────
+  Priority:
+    1. CronJob  – $.Values.job.schedule is non-empty
+    2. Job      – $.Values.job is set (no schedule)
+*/}}
+
+{{- $kind := "Job" }}
+{{- if $.Values.job.schedule }}
+  {{- $kind = "CronJob" }}
+{{- end }}
+
+apiVersion: batch/v1
+kind: {{ $kind }}
+metadata:
+  name: {{ $.Release.Name | quote }}
+  labels:
+    "app.kubernetes.io/name": "devspace-app"
+    "app.kubernetes.io/component": {{ $.Release.Name | quote }}
+    "app.kubernetes.io/managed-by": {{ $.Release.Service | quote }}
+    {{- range $labelName, $labelValue := $.Values.labels }}
+    {{ $labelName | quote }}: {{ $labelValue | quote }}
+    {{- end }}
+  annotations:
+    "helm.sh/chart": "{{ $.Chart.Name }}-{{ $.Chart.Version }}"
+    {{- range $annotationName, $annotationValue := $.Values.annotations }}
+    {{ $annotationName | quote }}: {{ $annotationValue | quote }}
+    {{- end }}
+spec:
+  {{/*
+    ── CronJob spec ──────────────────────────────────────────────────────────
+  */}}
+  {{- if eq $kind "CronJob" }}
+  schedule: {{ $.Values.job.schedule | quote }}
+  {{- if $.Values.job.concurrencyPolicy }}
+  concurrencyPolicy: {{ $.Values.job.concurrencyPolicy }}
+  {{- end }}
+  {{- if hasKey $.Values.job "suspend" }}
+  suspend: {{ $.Values.job.suspend }}
+  {{- end }}
+  {{- if hasKey $.Values.job "startingDeadlineSeconds" }}
+  startingDeadlineSeconds: {{ $.Values.job.startingDeadlineSeconds }}
+  {{- end }}
+  {{- if hasKey $.Values.job "failedJobsHistoryLimit" }}
+  failedJobsHistoryLimit: {{ $.Values.job.failedJobsHistoryLimit }}
+  {{- end }}
+  {{- if hasKey $.Values.job "successfulJobsHistoryLimit" }}
+  successfulJobsHistoryLimit: {{ $.Values.job.successfulJobsHistoryLimit }}
+  {{- end }}
+  jobTemplate:
+    metadata:
+      labels:
+        "app.kubernetes.io/name": "devspace-app"
+        "app.kubernetes.io/component": {{ $.Release.Name | quote }}
+        "app.kubernetes.io/managed-by": {{ $.Release.Service | quote }}
+        {{- range $labelName, $labelValue := $.Values.labels }}
+        {{ $labelName | quote }}: {{ $labelValue | quote }}
+        {{- end }}
+      annotations:
+        "helm.sh/chart": "{{ $.Chart.Name }}-{{ $.Chart.Version }}"
+        {{- range $annotationName, $annotationValue := $.Values.annotations }}
+        {{ $annotationName | quote }}: {{ $annotationValue | quote }}
+        {{- end }}
+    spec:
+      {{- if hasKey $.Values.job "backoffLimit" }}
+      backoffLimit: {{ $.Values.job.backoffLimit }}
+      {{- end }}
+      {{- if hasKey $.Values.job "activeDeadlineSeconds" }}
+      activeDeadlineSeconds: {{ $.Values.job.activeDeadlineSeconds }}
+      {{- end }}
+      {{- if hasKey $.Values.job "ttlSecondsAfterFinished" }}
+      ttlSecondsAfterFinished: {{ $.Values.job.ttlSecondsAfterFinished }}
+      {{- end }}
+      template:
+{{ include "component.podTemplate" $ | indent 8 }}
+  {{- end }}{{/* end CronJob */}}
+  {{/*
+    ── Job spec ──────────────────────────────────────────────────────────────
+  */}}
+  {{- if eq $kind "Job" }}
+  {{- if hasKey $.Values.job "backoffLimit" }}
+  backoffLimit: {{ $.Values.job.backoffLimit }}
+  {{- end }}
+  {{- if hasKey $.Values.job "activeDeadlineSeconds" }}
+  activeDeadlineSeconds: {{ $.Values.job.activeDeadlineSeconds }}
+  {{- end }}
+  {{- if hasKey $.Values.job "ttlSecondsAfterFinished" }}
+  ttlSecondsAfterFinished: {{ $.Values.job.ttlSecondsAfterFinished }}
+  {{- end }}
+  template:
+{{ include "component.podTemplate" $ | indent 4 }}
+  {{- end }}{{/* end Job */}}
+
+{{- end }}{{/* end if containerIndex == 0 */}}
+{{- end }}{{/* end range containers */}}
+{{- end }}{{/* end if job */}}
