@@ -3,7 +3,7 @@
   "compilerOptions": {
     "baseUrl": ".",
     "types": ["@docusaurus/theme-classic", "node", "react", "react-dom"]
-  }
+  },
+  "exclude": ["build"]
 }
-
 

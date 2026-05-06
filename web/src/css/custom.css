@@ -12,6 +12,7 @@
   --ifm-heading-color: #0f766e;
   --ifm-link-color: #0d9488;
   --ifm-link-hover-color: #0a7068;
+  --search-local-highlight-color: #3f3f46;
 
   /* Code blocks with darker teal accent */
   --ifm-code-background: #ecfdf5;
@@ -31,6 +32,7 @@
   --ifm-heading-color: #2dd4bf;
   --ifm-link-color: #2dd4bf;
   --ifm-link-hover-color: #5eead4;
+  --search-local-highlight-color: #3f3f46;
 
   --ifm-code-background: #0f3d39;
   --ifm-code-color: #5eead4;

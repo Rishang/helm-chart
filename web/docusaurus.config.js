@@ -65,6 +65,26 @@ const config = {
     ],
   ],
 
+  themes: [
+    [
+      '@easyops-cn/docusaurus-search-local',
+      {
+        docsRouteBasePath: ['component-chart', 'loki-stack'],
+        docsPluginIdForPreferredVersion: 'component-chart',
+        docsDir: [
+          '../charts/component-chart/docs/pages',
+          '../charts/loki-stack/docs/pages',
+        ],
+        hashed: true,
+        indexBlog: false,
+        indexPages: true,
+        language: ['en'],
+        highlightSearchTermsOnTargetPage: true,
+        explicitSearchResultPath: true,
+      },
+    ],
+  ],
+
   themeConfig:
     /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
     ({
@@ -128,5 +148,3 @@ const config = {
 };
 
 module.exports = config;
-
-
