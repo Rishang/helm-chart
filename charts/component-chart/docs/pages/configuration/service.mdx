@@ -80,6 +80,38 @@ type: ClusterIP
 ## `externalIPs`
 The `externalIPs` option is optional and expects an array of IP addresses for the service.
 
+## `clusterIP`
+The `clusterIP` option is optional and expects a string that defines the cluster-internal IP address for the service.
+
+## `externalName`
+The `externalName` option is optional and expects a string for `ExternalName` services.
+
+## `externalTrafficPolicy`
+The `externalTrafficPolicy` option is optional and expects a string that defines how external traffic is routed for `NodePort` and `LoadBalancer` services.
+
+## `healthCheckNodePort`
+The `healthCheckNodePort` option is optional and expects an integer for the health check node port of a `LoadBalancer` service.
+
+## `ipFamily`
+The `ipFamily` option is optional and expects a string that defines the service IP family.
+
+## `loadBalancerIP`
+The `loadBalancerIP` option is optional and expects a string with the load balancer IP address.
+
+## `loadBalancerSourceRanges`
+The `loadBalancerSourceRanges` option is optional and expects an array of CIDR ranges allowed to access a `LoadBalancer` service.
+
+## `publishNotReadyAddresses`
+The `publishNotReadyAddresses` option is optional and expects a boolean.
+
+## `sessionAffinity`
+The `sessionAffinity` option is optional and expects a string.
+
+## `sessionAffinityConfig`
+The `sessionAffinityConfig` option is optional and expects an object with Kubernetes service session affinity configuration.
+
+## `topologyKeys`
+The `topologyKeys` option is optional and expects an array of topology keys.
 
 ## `name`
 The `name` option is optional and expects a string that defines the name of the service.
@@ -91,8 +123,8 @@ name: [HELM_RELEASE_NAME]
 
 
 ## `labels`
-The `labels` option is optional and expects an array of additional Kubernetes labels for the service.
+The `labels` option is optional and expects a map of additional Kubernetes labels for the service.
 
 
 ## `annotations`
-The `annotations` option is optional and expects an array of additional Kubernetes annotations for the service.
+The `annotations` option is optional and expects a map of additional Kubernetes annotations for the service.

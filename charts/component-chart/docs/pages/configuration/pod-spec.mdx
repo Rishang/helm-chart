@@ -1,0 +1,88 @@
+---
+title: Pod Spec
+sidebar_label: pod spec
+---
+
+import ArtifactHubBadge from '@site/src/components/ArtifactHubBadge';
+
+<ArtifactHubBadge name="component-chart" />
+
+The chart supports several top-level values that map directly to Kubernetes Pod spec fields.
+
+Use these fields when you need Kubernetes-native Pod behavior that is not covered by a more specific chart option.
+
+## Object and Array Fields
+
+The following values are rendered directly into the Pod spec:
+
+```yaml
+nodeSelector: {}
+nodeName: ""
+affinity: {}
+tolerations: []
+dnsConfig: {}
+hostAliases: []
+overhead: {}
+readinessGates: []
+securityContext: {}
+topologySpreadConstraints: []
+ephemeralContainers: []
+```
+
+## Scalar Fields
+
+The following optional values are rendered when set:
+
+```yaml
+activeDeadlineSeconds: 100
+automountServiceAccountToken: true
+dnsPolicy: ClusterFirst
+enableServiceLinks: true
+hostIPC: false
+hostNetwork: false
+hostPID: false
+hostname: app
+preemptionPolicy: PreemptLowerPriority
+priority: 0
+priorityClassName: high-priority
+restartPolicy: Always
+runtimeClassName: gvisor
+schedulerName: default-scheduler
+serviceAccountName: app-service-account
+setHostnameAsFQDN: false
+shareProcessNamespace: false
+subdomain: app
+```
+
+:::note
+`serviceaccount.name` takes precedence over `serviceAccountName` when both values are set.
+:::
+
+## `restartPolicy`
+
+For Jobs and CronJobs, the chart renders `restartPolicy: OnFailure` when `restartPolicy` is not explicitly set.
+
+## Example: Set Pod Security Context
+
+```yaml
+containers:
+- image: john/appbackend
+securityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  fsGroup: 1000
+```
+
+## Example: Set Topology Spread Constraints
+
+```yaml
+containers:
+- image: john/appbackend
+topologySpreadConstraints:
+- maxSkew: 1
+  topologyKey: topology.kubernetes.io/zone
+  whenUnsatisfiable: ScheduleAnyway
+  labelSelector:
+    matchLabels:
+      app.kubernetes.io/name: devspace-app
+```

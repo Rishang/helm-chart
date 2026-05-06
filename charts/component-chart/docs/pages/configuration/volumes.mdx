@@ -22,6 +22,23 @@ The `size` option is used for persistent volumes and expects a string with the s
 ## `emptyDir`
 The `emptyDir` option is used for defining a Kubernetes `emptyDir` volume. `{}` will enable an `emptyDir` with default values. `emptyDir.medium` can optionally be `Memory`. `emptyDir.sizeLimit` can be use to specify the size limit.
 
+## `hostPath`
+The `hostPath` option is used for defining a Kubernetes `hostPath` volume. It is rendered directly into the Pod spec and supports the Kubernetes `hostPath` fields, such as `path` and `type`.
+
+```yaml
+volumes:
+- name: host-logs
+  hostPath:
+    path: /var/log
+    type: Directory
+containers:
+- image: john/appbackend
+  volumeMounts:
+  - containerPath: /host-logs
+    volume:
+      name: host-logs
+      readOnly: true
+```
 
 ## `configMap`
 The `configMap` option is used for defining a Kubernetes ConfigMap as volume. It requires defining `configMap.name`.

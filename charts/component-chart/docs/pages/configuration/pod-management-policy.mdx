@@ -7,16 +7,29 @@ import ArtifactHubBadge from '@site/src/components/ArtifactHubBadge';
 
 <ArtifactHubBadge name="component-chart" />
 
-The `podManagementPolicy` option expects a string which sets the [`podManagementPolicy` Kubernetes attribute for a StatefulSets](https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/#pod-management-policies).
+The `podManagementPolicy` option expects a string which sets the [`podManagementPolicy` Kubernetes attribute for StatefulSets](https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/#pod-management-policies).
 
 #### Default Value For `podManagementPolicy`
 ```yaml
 podManagementPolicy: OrderedReady
 ```
 
-#### Example: Custom Name for Headless Service
+#### Example: Set Pod Management Policy
 ```yaml
 containers:
 - image: john/appbackend
 podManagementPolicy: Parallel
+```
+
+## `serviceName`
+
+The `serviceName` option is used for StatefulSets and expects a string with the headless service name.
+
+If `serviceName` is not set, the chart uses `[HELM_RELEASE_NAME]-headless`.
+
+#### Example: Custom Headless Service Name
+```yaml
+containers:
+- image: john/appbackend
+serviceName: my-app
 ```

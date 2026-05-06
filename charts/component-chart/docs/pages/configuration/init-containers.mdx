@@ -7,4 +7,6 @@ import ArtifactHubBadge from '@site/src/components/ArtifactHubBadge';
 
 <ArtifactHubBadge name="component-chart" />
 
-The `initContainers` section allows the exact same configuration options as the [`containers` section](../configuration/containers.mdx).
+The `initContainers` section supports most options from the [`containers` section](../configuration/containers.mdx).
+
+Init containers use the same image, command, environment, probe, security, resource, and volume mount settings as regular containers. Container `ports` are only rendered for regular `containers`, not for `initContainers`.

@@ -1,0 +1,22 @@
+---
+title: Revision History Limit
+sidebar_label: revisionHistoryLimit
+---
+
+import ArtifactHubBadge from '@site/src/components/ArtifactHubBadge';
+
+<ArtifactHubBadge name="component-chart" />
+
+The `revisionHistoryLimit` option expects an integer and sets how many old ReplicaSets Kubernetes keeps for rollback.
+
+#### Default Value For `revisionHistoryLimit`
+```yaml
+revisionHistoryLimit: 3
+```
+
+#### Example: Set Revision History Limit
+```yaml
+containers:
+- image: john/appbackend
+revisionHistoryLimit: 5
+```

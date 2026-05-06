@@ -9,9 +9,9 @@ import CodeBlock from '@theme/CodeBlock';
 
 <ArtifactHubBadge name="component-chart" />
 
-## Complete default values.yaml Reference
+## Default values.yaml Reference
 
-Below is the complete `values.yaml` file with all available configuration options and their default values:
+Below is the chart's default `values.yaml` file:
 
 <CodeBlock language="yaml" title="values.yaml">
   {valuesYaml}
@@ -25,7 +25,10 @@ The `values.yaml` is organized into the following main sections:
 - **containers** - Define application containers with images, env vars, and resources
 - **initContainers** - Initialize containers that run before main containers
 - **replicas** - Number of pod replicas (default: 1)
+- **revisionHistoryLimit** - Number of old ReplicaSets retained for rollback (default: 3)
 - **rollingUpdate** - Rolling update strategy configuration
+- **terminationGracePeriodSeconds** - Pod shutdown grace period in seconds (default: 5)
+- **pod spec** - Additional Kubernetes Pod spec fields
 
 ### Networking
 - **service** - Kubernetes Service configuration for internal networking
@@ -71,6 +74,7 @@ ingress:
 ## See Also
 
 - [Container Configuration](./configuration/containers.mdx)
+- [Pod Spec Configuration](./configuration/pod-spec.mdx)
 - [Service Configuration](./configuration/service.mdx)
 - [Ingress Configuration](./configuration/ingress.mdx)
 - [Volumes Configuration](./configuration/volumes.mdx)

@@ -47,6 +47,25 @@ containers:
   imageTag: "1.2.3"
 ```
 
+## `imagePullPolicy`
+The `imagePullPolicy` option is optional and expects a Kubernetes container image pull policy.
+
+```yaml
+containers:
+- name: api
+  image: dscr.io/username/api-server
+  imagePullPolicy: IfNotPresent
+```
+
+## `workingDir`
+The `workingDir` option is optional and expects a string with the container working directory.
+
+```yaml
+containers:
+- name: api
+  image: dscr.io/username/api-server
+  workingDir: /app
+```
 
 ## `command`
 The `command` option is optional and expects an array of strings. This option is used to override the `ENTRYPOINT` specified in the Dockerfile.
@@ -73,10 +92,17 @@ The `args` option is optional and expects an array of strings. This option is us
 ## `stdin`
 The `stdin` option is optional and expects a boolean which defines if stdin should be enabled for this container.
 
+## `stdinOnce`
+The `stdinOnce` option is optional and expects a boolean which defines if stdin should be closed after one attached client disconnects.
 
 ## `tty`
 The `tty` option is optional and expects a boolean which defines if tty should be enabled for this container.
 
+## `terminationMessagePath`
+The `terminationMessagePath` option is optional and expects a string with the path where the container termination message is written.
+
+## `terminationMessagePolicy`
+The `terminationMessagePolicy` option is optional and expects a Kubernetes termination message policy.
 
 ## `env`
 The `env` option is optional and expects an array of environment variables for this container. 
@@ -121,8 +147,62 @@ valueFrom:                  # Option 2: Load value from another resource
     key: [key-name]         # Key within the config map
 ```
 
+## `envFrom`
+The `envFrom` option is optional and expects an array of Kubernetes `envFrom` sources.
+
+```yaml
+containers:
+- name: api
+  image: dscr.io/username/api-server
+  envFrom:
+  - configMapRef:
+      name: api-config
+  - secretRef:
+      name: api-secret
+```
+
+## `ports`
+The `ports` option is optional and expects an array of Kubernetes container ports. If a port name is not set, the chart uses `port-[index]`.
+
+```yaml
+containers:
+- name: api
+  image: dscr.io/username/api-server
+  ports:
+  - name: http
+    containerPort: 8080
+    protocol: TCP
+```
+
+## `securityContext`
+The `securityContext` option is optional and expects a Kubernetes container security context.
+
+```yaml
+containers:
+- name: api
+  image: dscr.io/username/api-server
+  securityContext:
+    allowPrivilegeEscalation: false
+    runAsNonRoot: true
+```
+
+## `lifecycle`
+The `lifecycle` option is optional and expects a Kubernetes container lifecycle configuration.
+
+```yaml
+containers:
+- name: api
+  image: dscr.io/username/api-server
+  lifecycle:
+    preStop:
+      exec:
+        command:
+        - sleep
+        - "5"
+```
+
 ## `volumeMounts`
-The `volumeMounts` option excepts an array of volumes which should be mounted into this container.
+The `volumeMounts` option expects an array of volumes which should be mounted into this container.
 
 ### `containerPath`
 The `containerPath` option expects a string with a path that defines where the volume should be mounted within the container.
@@ -168,6 +248,9 @@ The `volume.shared` option expects a boolean which defines if the volume should 
 shared: false
 ```
 
+## `volumeDevices`
+The `volumeDevices` option is optional and expects an array of Kubernetes volume devices.
+
 ## `resources`
 The `resources` section of a container allows you to configure resource restrictions for this container.
 
@@ -175,7 +258,8 @@ The `resources` section of a container allows you to configure resource restrict
 You can set resource limits and resource requests for the following resources:
 - CPU in Core units, i.e. 3 = 3 Cores, 800m = 0.8 Core (=800 **M**illi-Core)
 - Memory (RAM) in Gi (Gigabyte), Mi (Megabyte) or Ki (Kilobyte)
-- Emphemeral (non-persistent container) storage in Gi (Gigabyte), Mi (Megabyte) or Ki (Kilobyte)
+- Ephemeral (non-persistent container) storage in Gi (Gigabyte), Mi (Megabyte) or Ki (Kilobyte)
+- NVIDIA GPUs via `gpu`, rendered as `nvidia.com/gpu`
 
 ### `limits`
 To limit the resources of a container, simply configure the `limits` within the `resources` section of the container.
@@ -186,11 +270,13 @@ containers:
   resources:
     limits:
       cpu: 400m
+      gpu: 1
       memory: 500Mi
       ephemeralStorage: 2Gi
 ```
 The above example would define that this container can use a maximum of:
 - 0.4 Cores
+- 1 NVIDIA GPU
 - 500 Megabytes of Memory (RAM)
 - 2 Gigabytes of ephemeral storage
 

@@ -106,11 +106,7 @@ spec:
   {{- if $.Values.subdomain }}
   subdomain: {{ $.Values.subdomain }}
   {{- end }}
-  {{- if hasKey $.Values "terminationGracePeriodSeconds" }}
   terminationGracePeriodSeconds: {{ $.Values.terminationGracePeriodSeconds }}
-  {{- else }}
-  terminationGracePeriodSeconds: 5
-  {{- end }}
   ephemeralContainers:
 {{ toYaml $.Values.ephemeralContainers | indent 4 }}
   containers:

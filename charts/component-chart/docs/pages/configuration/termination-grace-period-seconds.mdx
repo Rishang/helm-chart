@@ -1,0 +1,24 @@
+---
+title: Termination Grace Period
+sidebar_label: terminationGracePeriodSeconds
+---
+
+import ArtifactHubBadge from '@site/src/components/ArtifactHubBadge';
+
+<ArtifactHubBadge name="component-chart" />
+
+The `terminationGracePeriodSeconds` option expects an integer and sets the [`terminationGracePeriodSeconds` Kubernetes attribute for Pods](https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/#pod-termination).
+
+This value defines how long Kubernetes waits for containers to shut down gracefully after sending a termination signal before forcefully stopping them.
+
+#### Default Value For `terminationGracePeriodSeconds`
+```yaml
+terminationGracePeriodSeconds: 5
+```
+
+#### Example: Set Termination Grace Period
+```yaml
+containers:
+- image: john/appbackend
+terminationGracePeriodSeconds: 30
+```

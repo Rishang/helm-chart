@@ -1,3 +1,6 @@
+# The termination grace period in seconds for the pods of this component
+terminationGracePeriodSeconds: 5
+
 # A list of containers that should run the pods of this component
 containers: []
 
