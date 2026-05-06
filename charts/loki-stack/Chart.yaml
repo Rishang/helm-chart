@@ -4,6 +4,7 @@ description: Observability stack - Loki for logs, Grafana for visualization, Pro
 type: application
 version: 1.0.1
 appVersion: "1.0.1"
+icon: https://rishang.github.io/helm-chart/img/loki-stack-icon.png
 
 dependencies:
   - name: loki
@@ -24,4 +25,3 @@ dependencies:
 maintainers:
   - name: loki-stack-maintainer
     email: rishangbhavsarcs@gmail.com
-
