@@ -39,42 +39,75 @@ loki:
     # If you prefer readOnlyRootFilesystem=true, enable persistence or add the emptyDir mount under `singleBinary` above.
     containerSecurityContext:
       readOnlyRootFilesystem: true
+    # -- Storage config. Providing this will automatically populate all necessary storage configs in the templated config.
     storage:
-      type: "filesystem"
-      # To store Loki logs in RustFS/S3 instead of the local filesystem:
+      # Loki requires a bucket for chunks and the ruler. GEL requires a third bucket for the admin API.
+      # Please provide these values if you are using object storage.
+      # bucketNames:
+      #   chunks: FIXME
+      #   ruler: FIXME
+      #   admin: FIXME
+      # Options: filesystem, s3, gcs, azure, swift, s3-compatible
+      type: filesystem
+      # s3:
+      #   # Either use a single S3 URL...
+      #   s3: s3://access_key:secret_access_key@custom_endpoint/bucket_name
       #
-      # 1. Enable the optional RustFS subchart:
-      #    rustfs:
-      #      enabled: true
+      #   # ...or the individual fields below.
       #
-      # 2. Create these buckets in RustFS before Loki starts:
-      #    loki-chunks, loki-ruler, loki-admin
+      #   # For RustFS deployed by this chart, use: http://<release-name>-rustfs-svc:9000
+      #   endpoint: http://<release-name>-rustfs-svc:9000
+      #   region: us-east-1
+      #   secretAccessKey: rustfsadmin
+      #   accessKeyId: rustfsadmin
+      #   signatureVersion: v4
+      #   s3ForcePathStyle: true
+      #   insecure: true
+      #   http_config: {}
+      #   backoff_config: {}
+      #   disable_dualstack: false
       #
-      # 3. Override Loki storage and schema in your values file:
-      #    loki:
-      #      loki:
-      #        storage:
-      #          type: s3
-      #          bucketNames:
-      #            chunks: loki-chunks
-      #            ruler: loki-ruler
-      #            admin: loki-admin
-      #          s3:
-      #            endpoint: http://<release-name>-rustfs-svc:9000
-      #            region: us-east-1
-      #            accessKeyId: rustfsadmin
-      #            secretAccessKey: rustfsadmin
-      #            s3ForcePathStyle: true
-      #            insecure: true
-      #        schemaConfig:
-      #          configs:
-      #            - from: 2024-04-01
-      #              store: tsdb
-      #              object_store: s3
-      #              schema: v13
-      #              index:
-      #                prefix: loki_index_
-      #                period: 24h
+      # gcs:
+      #   chunkBufferSize: 0
+      #   requestTimeout: "0s"
+      #   enableHttp2: true
+      #
+      # azure:
+      #   accountName: null
+      #   accountKey: null
+      #   connectionString: null
+      #   useManagedIdentity: false
+      #   useFederatedToken: false
+      #   userAssignedId: null
+      #   requestTimeout: null
+      #   endpointSuffix: null
+      #   chunkDelimiter: null
+      #
+      # swift:
+      #   auth_version: null
+      #   auth_url: null
+      #   internal: null
+      #   username: null
+      #   user_domain_name: null
+      #   user_domain_id: null
+      #   user_id: null
+      #   password: null
+      #   domain_id: null
+      #   domain_name: null
+      #   project_id: null
+      #   project_name: null
+      #   project_domain_id: null
+      #   project_domain_name: null
+      #   region_name: null
+      #   container_name: null
+      #   max_retries: null
+      #   connect_timeout: null
+      #   request_timeout: null
+      #
+      filesystem:
+        chunks_directory: /var/loki/chunks
+        rules_directory: /var/loki/rules
+    # -- Check https://grafana.com/docs/loki/latest/configuration/#schema_config for more info on how to configure schemas
     schemaConfig:
       configs:
         - from: 2024-04-01
