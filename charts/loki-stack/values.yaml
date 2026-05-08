@@ -21,11 +21,11 @@ rustfs:
       secret_key: rustfsadmin
   config:
     rustfs:
-      region: us-east-1
+      region: us-east-1 # <region of your RustFS>
   storageclass:
-    name: local-path
-    dataStorageSize: 10Gi
-    logStorageSize: 1Gi
+    name: local-path # <name of your storage class>
+    dataStorageSize: 10Gi # <size of your data storage>
+    logStorageSize: 1Gi # <size of your log storage>
 
 loki:
   enabled: true
