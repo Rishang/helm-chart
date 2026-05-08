@@ -2,8 +2,8 @@ apiVersion: v2
 name: loki-stack
 description: Observability stack - Loki for logs, Grafana for visualization, Prometheus for metrics, and Grafana Alloy for log collection (alternative to deprecated Promtail) [DOCS => https://rishang.github.io/helm-chart/loki-stack/introduction]
 type: application
-version: 1.0.1
-appVersion: "1.0.1"
+version: 1.0.2
+appVersion: "1.0.2"
 icon: https://rishang.github.io/helm-chart/img/loki-stack-icon.png
 
 dependencies:
@@ -11,6 +11,11 @@ dependencies:
     version: "7.0.0"
     repository: https://grafana.github.io/helm-charts
     condition: loki.enabled
+
+  - name: rustfs
+    version: "0.1.0"
+    repository: https://charts.rustfs.com
+    condition: rustfs.enabled
 
   - name: alloy
     version: "1.8.1"

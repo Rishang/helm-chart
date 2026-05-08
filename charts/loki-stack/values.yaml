@@ -1,3 +1,32 @@
+rustfs:
+  # Optional in-cluster S3-compatible object storage for Loki.
+  # Disabled by default; enable only if you want this chart to deploy RustFS from https://github.com/rustfs/helm.
+  enabled: false
+  mode:
+    standalone:
+      enabled: true
+    distributed:
+      enabled: false
+  ingress:
+    enabled: false
+  secret:
+    # To use an existing Kubernetes Secret for RustFS credentials, set `existingSecret`
+    # to the Secret name and leave/create these keys in that Secret:
+    #   RUSTFS_ACCESS_KEY: <base64-encoded access key>
+    #   RUSTFS_SECRET_KEY: <base64-encoded secret key>
+    #
+    # existingSecret: rustfs-credentials
+    rustfs:
+      access_key: rustfsadmin
+      secret_key: rustfsadmin
+  config:
+    rustfs:
+      region: us-east-1
+  storageclass:
+    name: local-path
+    dataStorageSize: 10Gi
+    logStorageSize: 1Gi
+
 loki:
   enabled: true
   deploymentMode: SingleBinary
@@ -12,6 +41,40 @@ loki:
       readOnlyRootFilesystem: true
     storage:
       type: "filesystem"
+      # To store Loki logs in RustFS/S3 instead of the local filesystem:
+      #
+      # 1. Enable the optional RustFS subchart:
+      #    rustfs:
+      #      enabled: true
+      #
+      # 2. Create these buckets in RustFS before Loki starts:
+      #    loki-chunks, loki-ruler, loki-admin
+      #
+      # 3. Override Loki storage and schema in your values file:
+      #    loki:
+      #      loki:
+      #        storage:
+      #          type: s3
+      #          bucketNames:
+      #            chunks: loki-chunks
+      #            ruler: loki-ruler
+      #            admin: loki-admin
+      #          s3:
+      #            endpoint: http://<release-name>-rustfs-svc:9000
+      #            region: us-east-1
+      #            accessKeyId: rustfsadmin
+      #            secretAccessKey: rustfsadmin
+      #            s3ForcePathStyle: true
+      #            insecure: true
+      #        schemaConfig:
+      #          configs:
+      #            - from: 2024-04-01
+      #              store: tsdb
+      #              object_store: s3
+      #              schema: v13
+      #              index:
+      #                prefix: loki_index_
+      #                period: 24h
     schemaConfig:
       configs:
         - from: 2024-04-01

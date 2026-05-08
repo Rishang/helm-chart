@@ -14,6 +14,7 @@ This Helm chart deploys a complete observability stack on Kubernetes, providing:
 - **Grafana**: Visualization and dashboards for logs and metrics
 - **Prometheus**: Metrics collection and monitoring via kube-prometheus-stack
 - **Grafana Alloy**: Modern log collection agent (replaces deprecated Promtail)
+- **RustFS**: Optional S3-compatible object storage for Loki logs (disabled by default)
 
 ## Prerequisites
 
@@ -51,6 +52,7 @@ helm install loki-stack . --namespace monitoring --create-namespace --values cus
 | `loki.enabled` | Enable Loki log aggregation | `true` |
 | `loki.deploymentMode` | Loki deployment mode | `SingleBinary` |
 | `loki.singleBinary.persistence.enabled` | Enable persistent storage for Loki | `false` |
+| `rustfs.enabled` | Enable optional RustFS S3-compatible object storage | `false` |
 | `alloy.enabled` | Enable Grafana Alloy log collector | `true` |
 | `kube-prometheus-stack.enabled` | Enable Prometheus and Grafana | `true` |
 | `kube-prometheus-stack.grafana.enabled` | Enable Grafana dashboard | `true` |
@@ -73,6 +75,10 @@ loki:
 kube-prometheus-stack:
   enabled: false
 ```
+
+### Example: Store Loki Logs in RustFS/S3
+
+RustFS is disabled by default. To use it as Loki object storage, enable `rustfs.enabled`, create the Loki buckets in RustFS, and override Loki storage to S3. See the commented example in `values.yaml`.
 
 ## Accessing Services
 
@@ -147,6 +153,7 @@ helm template loki-stack . --namespace monitoring --values test/values.yaml > lo
 This chart depends on:
 
 - [Loki](https://github.com/grafana/loki) 
+- [RustFS](https://github.com/rustfs/helm)
 - [Grafana Alloy](https://github.com/grafana/alloy) 
 - [kube-prometheus-stack](https://github.com/prometheus-community/helm-charts)
 
