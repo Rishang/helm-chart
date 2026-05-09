@@ -153,7 +153,7 @@ helm template loki-stack . --namespace monitoring --values test/values.yaml > lo
 This chart depends on:
 
 - [Loki](https://github.com/grafana/loki) 
-- [RustFS](https://github.com/rustfs/helm)
+- [RustFS](https://github.com/rustfs/helm) (optional, disabled by default via `rustfs.enabled: false`)
 - [Grafana Alloy](https://github.com/grafana/alloy) 
 - [kube-prometheus-stack](https://github.com/prometheus-community/helm-charts)
 

@@ -14,6 +14,7 @@ import ArtifactHubBadge from '@site/src/components/ArtifactHubBadge';
 - **Loki** (logs storage/query) via the `grafana/loki` subchart
 - **Grafana Alloy** (log collection) via the `grafana/alloy` subchart
 - **Prometheus + Grafana** via the `prometheus-community/kube-prometheus-stack` subchart
+- **RustFS** (optional S3-compatible object storage) via the `rustfs/rustfs` subchart when `rustfs.enabled=true`
 
 ## Upstream chart references (Artifact Hub)
 
@@ -24,6 +25,7 @@ Artifact Hub install page for this umbrella chart:
 These are the upstream charts this umbrella chart depends on (see `helm/loki-stack/Chart.yaml`):
 
 - **Loki** (`grafana/loki`): `https://artifacthub.io/packages/helm/grafana/loki`
+- **RustFS** (`rustfs/rustfs`): `https://github.com/rustfs/helm` (optional, disabled by default)
 - **Alloy** (`grafana/alloy`): `https://artifacthub.io/packages/helm/grafana/alloy`
 - **kube-prometheus-stack** (`prometheus-community/kube-prometheus-stack`): `https://artifacthub.io/packages/helm/prometheus-community/kube-prometheus-stack`
 

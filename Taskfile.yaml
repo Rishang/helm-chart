@@ -74,23 +74,50 @@ tasks:
     cmds:
     - echo "Adding required Helm repositories..."
     - helm repo add grafana https://grafana.github.io/helm-charts || true
+    - helm repo add rustfs https://charts.rustfs.com || true
     - helm repo add prometheus-community https://prometheus-community.github.io/helm-charts || true
-    - helm repo update
+    - helm repo update grafana rustfs prometheus-community
     - echo "Creating charts directory..."
     - mkdir -p web/static/charts
-    - echo "Cleaning old chart packages..."
-    - rm -f web/static/charts/*.tgz
+    - echo "Restoring previously published chart packages..."
+    - |
+      CHART_REPO_URL="https://rishang.github.io/helm-chart/charts"
+      PREVIOUS_INDEX="web/static/charts/index.yaml.previous"
+
+      if curl -fsSL "$CHART_REPO_URL/index.yaml" -o "$PREVIOUS_INDEX"; then
+        awk '/^[[:space:]]*- https?:.*\.tgz$/ { print $2 }' "$PREVIOUS_INDEX" | while read -r package_url; do
+          package_name="$(basename "$package_url")"
+          if [ ! -f "web/static/charts/$package_name" ]; then
+            echo "Restoring $package_name..."
+            curl -fsSL "$package_url" -o "web/static/charts/$package_name" || echo "Warning: failed to restore $package_name"
+          fi
+        done
+      elif [ -f web/static/charts/index.yaml ]; then
+        echo "Published index not reachable; using committed index for merge metadata."
+        cp web/static/charts/index.yaml "$PREVIOUS_INDEX"
+      else
+        echo "No previous chart index found; creating a fresh repository index."
+      fi
     - |
       for chart in component-chart loki-stack; do
         cp charts/.helmignore "charts/$chart/.helmignore"
         echo "Copied .helmignore to charts/$chart/.helmignore"
         echo "Packaging $chart..."
-        helm dependency update "charts/$chart"
+        helm dependency update "charts/$chart" --skip-refresh
         helm package "charts/$chart" -d web/static/charts/
         echo "Packaged $chart to web/static/charts/"
       done
     - echo "Updating Helm repository index..."
-    - helm repo index web/static/charts --url https://rishang.github.io/helm-chart/charts
-    - echo "✅ Charts packaged successfully!"
-    - echo "📦 Files created in web/static/charts/"
+    - |
+      CHART_REPO_URL="https://rishang.github.io/helm-chart/charts"
+      PREVIOUS_INDEX="web/static/charts/index.yaml.previous"
+
+      if [ -f "$PREVIOUS_INDEX" ]; then
+        helm repo index web/static/charts --url "$CHART_REPO_URL" --merge "$PREVIOUS_INDEX"
+        rm -f "$PREVIOUS_INDEX"
+      else
+        helm repo index web/static/charts --url "$CHART_REPO_URL"
+      fi
+    - echo "Charts packaged successfully!"
+    - echo "Files created in web/static/charts/"
     - ls -lh web/static/charts/
