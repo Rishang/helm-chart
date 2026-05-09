@@ -34,6 +34,25 @@ tempo:
   tempo:
     retention: 24h
     reportingEnabled: false
+    storage:
+      trace:
+        # Default: local filesystem. To use the in-cluster RustFS instead, enable
+        # rustfs.enabled above, then uncomment the s3 block below and set backend: s3.
+        backend: local
+        local:
+          path: /var/tempo/traces
+        wal:
+          path: /var/tempo/wal
+        #
+        # For RustFS deployed by this chart, use: http://<release-name>-rustfs-svc:9000
+        # backend: s3
+        # s3:
+        #   bucket: tempo-traces
+        #   endpoint: <release-name>-rustfs-svc:9000
+        #   access_key: rustfsadmin       # must match rustfs.secret.rustfs.access_key
+        #   secret_key: rustfsadmin       # must match rustfs.secret.rustfs.secret_key
+        #   insecure: true
+        #   s3ForcePathStyle: true
   persistence:
     enabled: false
     # size: 10Gi
@@ -45,10 +64,35 @@ mimir:
   # Optional long-term metrics backend.
   # kube-prometheus-stack already provides Prometheus; enable Mimir only when you want scalable remote-write storage.
   enabled: false
+  # By default Mimir ships its own MinIO; to use the shared RustFS instead,
+  # set minio.enabled=false and configure structuredConfig.common.storage below.
   minio:
     enabled: true
     persistence:
       size: 5Gi
+  # -- Use RustFS as Mimir's object store (replaces built-in MinIO)
+  # To switch, set mimir.minio.enabled=false, enable rustfs.enabled above,
+  # and uncomment the structuredConfig block below.
+  #
+  # mimir:
+  #   structuredConfig:
+  #     common:
+  #       storage:
+  #         backend: s3
+  #         s3:
+  #           endpoint: <release-name>-rustfs-svc:9000
+  #           bucket_name: mimir-tsdb
+  #           access_key_id: rustfsadmin       # must match rustfs.secret.rustfs.access_key
+  #           secret_access_key: rustfsadmin   # must match rustfs.secret.rustfs.secret_key
+  #           insecure: true
+  #     ruler_storage:
+  #       backend: s3
+  #       s3:
+  #         bucket_name: mimir-ruler
+  #     alertmanager_storage:
+  #       backend: s3
+  #       s3:
+  #         bucket_name: mimir-alertmanager
   metaMonitoring:
     serviceMonitor:
       enabled: false
