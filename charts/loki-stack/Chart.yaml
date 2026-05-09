@@ -22,6 +22,17 @@ dependencies:
     repository: https://grafana.github.io/helm-charts
     condition: alloy.enabled
 
+  - name: tempo
+    version: "1.24.4"
+    repository: https://grafana.github.io/helm-charts
+    condition: tempo.enabled
+
+  - name: mimir-distributed
+    alias: mimir
+    version: "6.0.6"
+    repository: https://grafana.github.io/helm-charts
+    condition: mimir.enabled
+
   - name: kube-prometheus-stack
     version: "84.5.0"
     repository: https://prometheus-community.github.io/helm-charts

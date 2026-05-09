@@ -27,6 +27,36 @@ rustfs:
     dataStorageSize: 10Gi # <size of your data storage>
     logStorageSize: 1Gi # <size of your log storage>
 
+tempo:
+  # Optional trace storage backend.
+  # Enable this with alloy.otlp.enabled to collect app traces over OTLP.
+  enabled: false
+  tempo:
+    retention: 24h
+    reportingEnabled: false
+  persistence:
+    enabled: false
+    # size: 10Gi
+    # storageClassName: default
+  serviceMonitor:
+    enabled: false
+
+mimir:
+  # Optional long-term metrics backend.
+  # kube-prometheus-stack already provides Prometheus; enable Mimir only when you want scalable remote-write storage.
+  enabled: false
+  minio:
+    enabled: true
+    persistence:
+      size: 5Gi
+  metaMonitoring:
+    serviceMonitor:
+      enabled: false
+    prometheusRule:
+      enabled: false
+  gateway:
+    enabled: true
+
 loki:
   enabled: true
   deploymentMode: SingleBinary
@@ -170,8 +200,30 @@ loki:
 alloy:
   enabled: true
 
+  otlp:
+    # Enable an OTLP endpoint on Alloy for application logs, metrics, and traces.
+    # Apps can send OTLP/gRPC to <release-name>-alloy:4317 or OTLP/HTTP to <release-name>-alloy:4318.
+    enabled: false
+    metrics:
+      # kube-prometheus-stack's Prometheus remote-write receiver is enabled below.
+      # To write app metrics to Mimir instead, enable mimir.enabled and set:
+      # remoteWriteUrl: http://{{ .Release.Name }}-mimir-gateway/api/v1/push
+      remoteWriteUrl: http://{{ .Release.Name }}-kube-prometheus-sta-prometheus:9090/api/v1/write
+    traces:
+      # Tempo must be enabled when alloy.otlp.enabled is true.
+      endpoint: http://{{ .Release.Name }}-tempo:4318
+
   # IMPORTANT: the Alloy chart expects config under the nested `alloy:` key.
   alloy:
+    extraPorts:
+      - name: otlp-grpc
+        port: 4317
+        targetPort: 4317
+        protocol: TCP
+      - name: otlp-http
+        port: 4318
+        targetPort: 4318
+        protocol: TCP
     mounts:
       # Mount host /var/log so we can read /var/log/containers and /var/log/pods for ALL pods/namespaces.
       varlog: true
@@ -252,6 +304,45 @@ alloy:
   # Extra configuration to be merged into the Alloy configMap Generally for configuring the write endpoints
   # This allows you to customize the loki.write endpoint or add additional configuration
   alloyConfigMapExtra: |
+    {{- if .Values.otlp.enabled }}
+    // receive application telemetry over OTLP and fan it out to Loki, Prometheus/Mimir, and Tempo
+    otelcol.receiver.otlp "apps" {
+      grpc {
+        endpoint = "0.0.0.0:4317"
+      }
+
+      http {
+        endpoint = "0.0.0.0:4318"
+      }
+
+      output {
+        logs    = [otelcol.exporter.loki.apps.input]
+        metrics = [otelcol.exporter.prometheus.apps.input]
+        traces  = [otelcol.exporter.otlphttp.tempo.input]
+      }
+    }
+
+    otelcol.exporter.loki "apps" {
+      forward_to = [loki.write.endpoint.receiver]
+    }
+
+    otelcol.exporter.prometheus "apps" {
+      forward_to = [prometheus.remote_write.otlp_metrics.receiver]
+    }
+
+    prometheus.remote_write "otlp_metrics" {
+      endpoint {
+        url = "{{ tpl .Values.otlp.metrics.remoteWriteUrl . }}"
+      }
+    }
+
+    otelcol.exporter.otlphttp "tempo" {
+      client {
+        endpoint = "{{ tpl .Values.otlp.traces.endpoint . }}"
+      }
+    }
+    {{- end }}
+
     // write to the Loki endpoint
     loki.write "endpoint" {
       endpoint {
@@ -261,6 +352,12 @@ alloy:
 
 kube-prometheus-stack:
   enabled: true
+
+  prometheus:
+    prometheusSpec:
+      # Allows Alloy's OTLP metrics pipeline to remote-write converted app metrics into Prometheus.
+      # For long-term storage, keep Prometheus here and remote-write to Mimir instead.
+      enableRemoteWriteReceiver: true
 
   grafana:
     enabled: true
