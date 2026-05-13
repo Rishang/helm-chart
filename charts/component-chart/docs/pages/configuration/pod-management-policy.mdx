@@ -25,6 +25,10 @@ podManagementPolicy: Parallel
 
 The `serviceName` option is used for StatefulSets and expects a string with the headless service name.
 
+:::note
+This is different from `service.name`, which sets the name of the Service resource. This top-level `serviceName` only affects the StatefulSet's `spec.serviceName` field.
+:::
+
 If `serviceName` is not set, the chart uses `[HELM_RELEASE_NAME]-headless`.
 
 #### Example: Custom Headless Service Name

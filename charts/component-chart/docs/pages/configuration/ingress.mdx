@@ -114,6 +114,10 @@ ingress:
 The `serviceName` option expects a string stating the name of the Kubernetes service to which the traffic should be routed for the hostname stated in `host`.
 
 :::note
+This is different from the top-level `serviceName` (headless service for StatefulSets) and `service.name` (name of the Service resource). This `ingress.serviceName` only controls which service the ingress routes traffic to.
+:::
+
+:::note
 By default, the ingress will automatically route to the service defined in the `service` section within this component. Defining `serviceName` is generally only useful if you want to create a simple ingress for another service that has not been created by a component, e.g. from using one of the Helm charts from the stable repository.
 :::
 

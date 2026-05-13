@@ -116,6 +116,10 @@ The `topologyKeys` option is optional and expects an array of topology keys.
 ## `name`
 The `name` option is optional and expects a string that defines the name of the service.
 
+:::note
+This is different from the top-level `serviceName` option, which sets the headless service name for StatefulSets. `service.name` controls the name of the Service resource created by this chart.
+:::
+
 #### Default for `name`
 ```yaml
 name: [HELM_RELEASE_NAME]
